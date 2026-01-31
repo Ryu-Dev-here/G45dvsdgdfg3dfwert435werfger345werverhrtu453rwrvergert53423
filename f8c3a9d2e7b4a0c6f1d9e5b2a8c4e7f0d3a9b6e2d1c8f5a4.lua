@@ -1,17 +1,16 @@
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
-    ║                   NEXUS UI LIBRARY v2.5                       ║
-    ║              The Ultimate Roblox GUI Framework                ║
+    ║                   NEXUS UI LIBRARY v2.8                       ║
+    ║                 The Roblox GUI Framework                      ║
     ║                                                               ║
-    ║  🎨 40+ UI Elements  |  🔗 Raw URL Support  |  🌐 Cross-Platform ║
-    ║                 LOADSTRING EDITION                            ║
+    ║  40+ UI Elements  | Raw URL Support | Cross-Platform          ║
     ╚═══════════════════════════════════════════════════════════════╝
     
     Usage:
-        local NexusUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/NexusUI_Bundled.lua"))()
+        local NexusUI = loadstring(game:HttpGet(""))()
         
-        -- Builder API (Recommended)
-        local Window = NexusUI.Build()
+        -- builder API (Recommended)
+        local Window = NexusUI.build()
             :Window({Title = "My App"})
             :Tab({Title = "Main"})
             :Button({Title = "Click", Callback = function() print("Hi") end})
@@ -461,7 +460,7 @@ _modules["Themes"] = function()
 ]]
 
 local Themes = {
-    Names = {"Dark", "Light", "Ocean", "AmberGlow", "Amethyst", "Green", "Bloom", "DarkBlue", "Serenity", "Rose", "Aqua", "Darker"}
+    Names = {"Dark", "Light", "Ocean", "AmberGlow", "Amethyst", "Green", "Bloom", "DarkBlue", "Serenity", "Rose", "Aqua", "Darker", "Cyberpunk", "Sunset", "Forest", "Lavender", "Crimson", "Ice", "Mocha", "Neon", "Slate", "Copper", "Emerald", "Sapphire"}
 }
 
 -- ============================================
@@ -1376,7 +1375,908 @@ Themes.Darker = {
     AcrylicNoise = 0.92
 }
 
+-- ============================================
+-- CYBERPUNK THEME (Neon Pink/Cyan)
+-- ============================================
+Themes.Cyberpunk = {
+    TextColor = Color3.fromRGB(255, 255, 255),
+    Background = Color3.fromRGB(15, 10, 25),
+    Topbar = Color3.fromRGB(25, 15, 40),
+    Shadow = Color3.fromRGB(10, 5, 18),
+    
+    NotificationBackground = Color3.fromRGB(20, 12, 35),
+    NotificationActionsBackground = Color3.fromRGB(255, 50, 150),
+    
+    Tab = Color3.fromRGB(60, 30, 80),
+    TabStroke = Color3.fromRGB(255, 0, 128),
+    TabBackgroundSelected = Color3.fromRGB(255, 50, 150),
+    TabTextColor = Color3.fromRGB(255, 255, 255),
+    SelectedTabTextColor = Color3.fromRGB(255, 255, 255),
+    
+    Element = Color3.fromRGB(30, 20, 50),
+    ElementBackground = Color3.fromRGB(30, 20, 50),
+    ElementBackgroundHover = Color3.fromRGB(40, 28, 65),
+    SecondaryElementBackground = Color3.fromRGB(20, 12, 35),
+    ElementStroke = Color3.fromRGB(100, 50, 150),
+    SecondaryElementStroke = Color3.fromRGB(80, 40, 120),
+    ElementBorder = Color3.fromRGB(100, 50, 150),
+    ElementTransparency = 0.85,
+    HoverChange = 0.05,
+    
+    SliderBackground = Color3.fromRGB(255, 0, 128),
+    SliderProgress = Color3.fromRGB(255, 0, 128),
+    SliderStroke = Color3.fromRGB(0, 255, 255),
+    
+    ToggleBackground = Color3.fromRGB(25, 15, 40),
+    ToggleEnabled = Color3.fromRGB(0, 255, 255),
+    ToggleDisabled = Color3.fromRGB(80, 50, 100),
+    ToggleEnabledStroke = Color3.fromRGB(0, 255, 255),
+    ToggleDisabledStroke = Color3.fromRGB(100, 60, 120),
+    ToggleEnabledOuterStroke = Color3.fromRGB(100, 100, 150),
+    ToggleDisabledOuterStroke = Color3.fromRGB(60, 40, 80),
+    
+    DropdownSelected = Color3.fromRGB(40, 25, 60),
+    DropdownUnselected = Color3.fromRGB(25, 15, 40),
+    
+    Input = Color3.fromRGB(25, 15, 40),
+    InputFocused = Color3.fromRGB(20, 12, 35),
+    InputStroke = Color3.fromRGB(150, 50, 200),
+    InputIndicator = Color3.fromRGB(255, 0, 128),
+    PlaceholderColor = Color3.fromRGB(150, 120, 180),
+    InElementBorder = Color3.fromRGB(100, 50, 150),
+    
+    Dialog = Color3.fromRGB(25, 15, 40),
+    DialogBorder = Color3.fromRGB(255, 0, 128),
+    DialogButton = Color3.fromRGB(35, 22, 55),
+    DialogButtonBorder = Color3.fromRGB(150, 50, 200),
+    DialogHolder = Color3.fromRGB(18, 10, 30),
+    DialogHolderLine = Color3.fromRGB(80, 40, 120),
+    DialogInput = Color3.fromRGB(30, 18, 48),
+    DialogInputLine = Color3.fromRGB(200, 100, 255),
+    
+    Text = Color3.fromRGB(255, 255, 255),
+    SubText = Color3.fromRGB(200, 180, 220),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(255, 0, 128),
+    TitleBarLine = Color3.fromRGB(100, 50, 150),
+    
+    AcrylicMain = Color3.fromRGB(15, 10, 25),
+    AcrylicBorder = Color3.fromRGB(150, 50, 200),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 15, 50)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 5, 18))
+    }),
+    AcrylicNoise = 0.88
+}
+
+-- ============================================
+-- SUNSET THEME (Orange/Purple Gradient)
+-- ============================================
+Themes.Sunset = {
+    TextColor = Color3.fromRGB(255, 255, 255),
+    Background = Color3.fromRGB(35, 20, 40),
+    Topbar = Color3.fromRGB(50, 28, 55),
+    Shadow = Color3.fromRGB(25, 15, 30),
+    
+    NotificationBackground = Color3.fromRGB(40, 22, 45),
+    NotificationActionsBackground = Color3.fromRGB(255, 140, 60),
+    
+    Tab = Color3.fromRGB(80, 45, 70),
+    TabStroke = Color3.fromRGB(255, 120, 80),
+    TabBackgroundSelected = Color3.fromRGB(255, 140, 60),
+    TabTextColor = Color3.fromRGB(255, 255, 255),
+    SelectedTabTextColor = Color3.fromRGB(50, 30, 40),
+    
+    Element = Color3.fromRGB(55, 32, 58),
+    ElementBackground = Color3.fromRGB(55, 32, 58),
+    ElementBackgroundHover = Color3.fromRGB(70, 42, 72),
+    SecondaryElementBackground = Color3.fromRGB(40, 22, 45),
+    ElementStroke = Color3.fromRGB(120, 70, 100),
+    SecondaryElementStroke = Color3.fromRGB(100, 55, 85),
+    ElementBorder = Color3.fromRGB(120, 70, 100),
+    ElementTransparency = 0.87,
+    HoverChange = 0.05,
+    
+    SliderBackground = Color3.fromRGB(255, 120, 50),
+    SliderProgress = Color3.fromRGB(255, 140, 60),
+    SliderStroke = Color3.fromRGB(255, 180, 100),
+    
+    ToggleBackground = Color3.fromRGB(45, 25, 50),
+    ToggleEnabled = Color3.fromRGB(255, 140, 60),
+    ToggleDisabled = Color3.fromRGB(100, 60, 80),
+    ToggleEnabledStroke = Color3.fromRGB(255, 180, 100),
+    ToggleDisabledStroke = Color3.fromRGB(120, 75, 95),
+    ToggleEnabledOuterStroke = Color3.fromRGB(150, 90, 120),
+    ToggleDisabledOuterStroke = Color3.fromRGB(80, 50, 65),
+    
+    DropdownSelected = Color3.fromRGB(70, 40, 65),
+    DropdownUnselected = Color3.fromRGB(50, 28, 52),
+    
+    Input = Color3.fromRGB(50, 28, 52),
+    InputFocused = Color3.fromRGB(45, 25, 48),
+    InputStroke = Color3.fromRGB(180, 100, 120),
+    InputIndicator = Color3.fromRGB(255, 140, 60),
+    PlaceholderColor = Color3.fromRGB(180, 150, 170),
+    InElementBorder = Color3.fromRGB(120, 70, 100),
+    
+    Dialog = Color3.fromRGB(50, 28, 55),
+    DialogBorder = Color3.fromRGB(255, 140, 60),
+    DialogButton = Color3.fromRGB(60, 35, 62),
+    DialogButtonBorder = Color3.fromRGB(180, 100, 120),
+    DialogHolder = Color3.fromRGB(35, 20, 40),
+    DialogHolderLine = Color3.fromRGB(100, 60, 85),
+    DialogInput = Color3.fromRGB(55, 32, 58),
+    DialogInputLine = Color3.fromRGB(255, 160, 80),
+    
+    Text = Color3.fromRGB(255, 255, 255),
+    SubText = Color3.fromRGB(220, 190, 210),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(255, 140, 60),
+    TitleBarLine = Color3.fromRGB(120, 70, 100),
+    
+    AcrylicMain = Color3.fromRGB(30, 18, 35),
+    AcrylicBorder = Color3.fromRGB(180, 100, 120),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 35, 62)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 15, 30))
+    }),
+    AcrylicNoise = 0.88
+}
+
+-- ============================================
+-- FOREST THEME (Deep Green)
+-- ============================================
+Themes.Forest = {
+    TextColor = Color3.fromRGB(235, 245, 235),
+    Background = Color3.fromRGB(18, 30, 22),
+    Topbar = Color3.fromRGB(25, 42, 30),
+    Shadow = Color3.fromRGB(12, 22, 15),
+    
+    NotificationBackground = Color3.fromRGB(20, 35, 25),
+    NotificationActionsBackground = Color3.fromRGB(100, 180, 100),
+    
+    Tab = Color3.fromRGB(45, 75, 50),
+    TabStroke = Color3.fromRGB(80, 140, 90),
+    TabBackgroundSelected = Color3.fromRGB(100, 180, 100),
+    TabTextColor = Color3.fromRGB(235, 245, 235),
+    SelectedTabTextColor = Color3.fromRGB(20, 35, 25),
+    
+    Element = Color3.fromRGB(28, 48, 32),
+    ElementBackground = Color3.fromRGB(28, 48, 32),
+    ElementBackgroundHover = Color3.fromRGB(35, 58, 40),
+    SecondaryElementBackground = Color3.fromRGB(20, 35, 25),
+    ElementStroke = Color3.fromRGB(55, 90, 60),
+    SecondaryElementStroke = Color3.fromRGB(45, 75, 50),
+    ElementBorder = Color3.fromRGB(55, 90, 60),
+    ElementTransparency = 0.88,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(80, 160, 90),
+    SliderProgress = Color3.fromRGB(100, 180, 100),
+    SliderStroke = Color3.fromRGB(130, 200, 130),
+    
+    ToggleBackground = Color3.fromRGB(22, 38, 26),
+    ToggleEnabled = Color3.fromRGB(100, 180, 100),
+    ToggleDisabled = Color3.fromRGB(60, 90, 65),
+    ToggleEnabledStroke = Color3.fromRGB(130, 200, 130),
+    ToggleDisabledStroke = Color3.fromRGB(75, 110, 80),
+    ToggleEnabledOuterStroke = Color3.fromRGB(70, 100, 75),
+    ToggleDisabledOuterStroke = Color3.fromRGB(45, 65, 48),
+    
+    DropdownSelected = Color3.fromRGB(38, 62, 42),
+    DropdownUnselected = Color3.fromRGB(25, 42, 30),
+    
+    Input = Color3.fromRGB(25, 42, 30),
+    InputFocused = Color3.fromRGB(22, 38, 26),
+    InputStroke = Color3.fromRGB(70, 120, 75),
+    InputIndicator = Color3.fromRGB(100, 180, 100),
+    PlaceholderColor = Color3.fromRGB(140, 170, 145),
+    InElementBorder = Color3.fromRGB(55, 90, 60),
+    
+    Dialog = Color3.fromRGB(25, 42, 30),
+    DialogBorder = Color3.fromRGB(100, 180, 100),
+    DialogButton = Color3.fromRGB(32, 52, 36),
+    DialogButtonBorder = Color3.fromRGB(70, 120, 75),
+    DialogHolder = Color3.fromRGB(18, 30, 22),
+    DialogHolderLine = Color3.fromRGB(50, 80, 55),
+    DialogInput = Color3.fromRGB(28, 48, 32),
+    DialogInputLine = Color3.fromRGB(120, 180, 125),
+    
+    Text = Color3.fromRGB(235, 245, 235),
+    SubText = Color3.fromRGB(160, 190, 165),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(100, 180, 100),
+    TitleBarLine = Color3.fromRGB(55, 90, 60),
+    
+    AcrylicMain = Color3.fromRGB(15, 25, 18),
+    AcrylicBorder = Color3.fromRGB(70, 120, 75),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 48, 32)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(12, 22, 15))
+    }),
+    AcrylicNoise = 0.90
+}
+
+-- ============================================
+-- LAVENDER THEME (Soft Purple Pastels)
+-- ============================================
+Themes.Lavender = {
+    TextColor = Color3.fromRGB(60, 50, 80),
+    Background = Color3.fromRGB(245, 240, 250),
+    Topbar = Color3.fromRGB(235, 228, 245),
+    Shadow = Color3.fromRGB(200, 190, 215),
+    
+    NotificationBackground = Color3.fromRGB(240, 235, 250),
+    NotificationActionsBackground = Color3.fromRGB(160, 130, 200),
+    
+    Tab = Color3.fromRGB(210, 200, 230),
+    TabStroke = Color3.fromRGB(180, 165, 210),
+    TabBackgroundSelected = Color3.fromRGB(160, 130, 200),
+    TabTextColor = Color3.fromRGB(80, 65, 110),
+    SelectedTabTextColor = Color3.fromRGB(255, 255, 255),
+    
+    Element = Color3.fromRGB(235, 230, 245),
+    ElementBackground = Color3.fromRGB(235, 230, 245),
+    ElementBackgroundHover = Color3.fromRGB(225, 218, 240),
+    SecondaryElementBackground = Color3.fromRGB(240, 235, 250),
+    ElementStroke = Color3.fromRGB(200, 188, 220),
+    SecondaryElementStroke = Color3.fromRGB(210, 200, 228),
+    ElementBorder = Color3.fromRGB(200, 188, 220),
+    ElementTransparency = 0.75,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(160, 130, 200),
+    SliderProgress = Color3.fromRGB(160, 130, 200),
+    SliderStroke = Color3.fromRGB(180, 150, 215),
+    
+    ToggleBackground = Color3.fromRGB(230, 224, 242),
+    ToggleEnabled = Color3.fromRGB(160, 130, 200),
+    ToggleDisabled = Color3.fromRGB(200, 192, 215),
+    ToggleEnabledStroke = Color3.fromRGB(180, 150, 215),
+    ToggleDisabledStroke = Color3.fromRGB(210, 200, 225),
+    ToggleEnabledOuterStroke = Color3.fromRGB(175, 160, 195),
+    ToggleDisabledOuterStroke = Color3.fromRGB(200, 192, 215),
+    
+    DropdownSelected = Color3.fromRGB(225, 218, 240),
+    DropdownUnselected = Color3.fromRGB(235, 230, 248),
+    
+    Input = Color3.fromRGB(250, 248, 255),
+    InputFocused = Color3.fromRGB(240, 235, 252),
+    InputStroke = Color3.fromRGB(190, 175, 210),
+    InputIndicator = Color3.fromRGB(160, 130, 200),
+    PlaceholderColor = Color3.fromRGB(150, 140, 170),
+    InElementBorder = Color3.fromRGB(200, 188, 220),
+    
+    Dialog = Color3.fromRGB(240, 235, 250),
+    DialogBorder = Color3.fromRGB(160, 130, 200),
+    DialogButton = Color3.fromRGB(235, 230, 248),
+    DialogButtonBorder = Color3.fromRGB(190, 175, 210),
+    DialogHolder = Color3.fromRGB(245, 240, 252),
+    DialogHolderLine = Color3.fromRGB(210, 200, 225),
+    DialogInput = Color3.fromRGB(250, 248, 255),
+    DialogInputLine = Color3.fromRGB(160, 140, 185),
+    
+    Text = Color3.fromRGB(60, 50, 80),
+    SubText = Color3.fromRGB(120, 105, 145),
+    
+    Hover = Color3.fromRGB(0, 0, 0),
+    Accent = Color3.fromRGB(160, 130, 200),
+    TitleBarLine = Color3.fromRGB(200, 188, 220),
+    
+    AcrylicMain = Color3.fromRGB(242, 238, 250),
+    AcrylicBorder = Color3.fromRGB(185, 170, 205),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 235, 250)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(230, 225, 245))
+    }),
+    AcrylicNoise = 0.75
+}
+
+-- ============================================
+-- CRIMSON THEME (Deep Reds/Blacks)
+-- ============================================
+Themes.Crimson = {
+    TextColor = Color3.fromRGB(255, 245, 245),
+    Background = Color3.fromRGB(20, 12, 15),
+    Topbar = Color3.fromRGB(35, 18, 22),
+    Shadow = Color3.fromRGB(15, 8, 10),
+    
+    NotificationBackground = Color3.fromRGB(25, 14, 18),
+    NotificationActionsBackground = Color3.fromRGB(180, 50, 60),
+    
+    Tab = Color3.fromRGB(65, 30, 38),
+    TabStroke = Color3.fromRGB(120, 45, 55),
+    TabBackgroundSelected = Color3.fromRGB(180, 50, 60),
+    TabTextColor = Color3.fromRGB(255, 245, 245),
+    SelectedTabTextColor = Color3.fromRGB(255, 255, 255),
+    
+    Element = Color3.fromRGB(35, 18, 22),
+    ElementBackground = Color3.fromRGB(35, 18, 22),
+    ElementBackgroundHover = Color3.fromRGB(48, 25, 30),
+    SecondaryElementBackground = Color3.fromRGB(25, 14, 18),
+    ElementStroke = Color3.fromRGB(80, 35, 42),
+    SecondaryElementStroke = Color3.fromRGB(65, 28, 35),
+    ElementBorder = Color3.fromRGB(80, 35, 42),
+    ElementTransparency = 0.87,
+    HoverChange = 0.05,
+    
+    SliderBackground = Color3.fromRGB(180, 50, 60),
+    SliderProgress = Color3.fromRGB(200, 60, 70),
+    SliderStroke = Color3.fromRGB(220, 80, 90),
+    
+    ToggleBackground = Color3.fromRGB(30, 15, 18),
+    ToggleEnabled = Color3.fromRGB(200, 60, 70),
+    ToggleDisabled = Color3.fromRGB(80, 40, 48),
+    ToggleEnabledStroke = Color3.fromRGB(220, 80, 90),
+    ToggleDisabledStroke = Color3.fromRGB(100, 50, 58),
+    ToggleEnabledOuterStroke = Color3.fromRGB(100, 50, 60),
+    ToggleDisabledOuterStroke = Color3.fromRGB(60, 30, 36),
+    
+    DropdownSelected = Color3.fromRGB(50, 25, 30),
+    DropdownUnselected = Color3.fromRGB(35, 18, 22),
+    
+    Input = Color3.fromRGB(35, 18, 22),
+    InputFocused = Color3.fromRGB(30, 15, 18),
+    InputStroke = Color3.fromRGB(100, 45, 52),
+    InputIndicator = Color3.fromRGB(180, 50, 60),
+    PlaceholderColor = Color3.fromRGB(160, 130, 135),
+    InElementBorder = Color3.fromRGB(80, 35, 42),
+    
+    Dialog = Color3.fromRGB(35, 18, 22),
+    DialogBorder = Color3.fromRGB(180, 50, 60),
+    DialogButton = Color3.fromRGB(45, 22, 28),
+    DialogButtonBorder = Color3.fromRGB(100, 45, 52),
+    DialogHolder = Color3.fromRGB(20, 12, 15),
+    DialogHolderLine = Color3.fromRGB(70, 32, 38),
+    DialogInput = Color3.fromRGB(40, 20, 25),
+    DialogInputLine = Color3.fromRGB(160, 60, 70),
+    
+    Text = Color3.fromRGB(255, 245, 245),
+    SubText = Color3.fromRGB(190, 165, 170),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(200, 60, 70),
+    TitleBarLine = Color3.fromRGB(80, 35, 42),
+    
+    AcrylicMain = Color3.fromRGB(18, 10, 12),
+    AcrylicBorder = Color3.fromRGB(100, 45, 52),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 20, 25)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 8, 10))
+    }),
+    AcrylicNoise = 0.90
+}
+
+-- ============================================
+-- ICE THEME (Cool Blues/Whites)
+-- ============================================
+Themes.Ice = {
+    TextColor = Color3.fromRGB(40, 55, 75),
+    Background = Color3.fromRGB(240, 248, 255),
+    Topbar = Color3.fromRGB(230, 240, 250),
+    Shadow = Color3.fromRGB(200, 218, 235),
+    
+    NotificationBackground = Color3.fromRGB(235, 245, 255),
+    NotificationActionsBackground = Color3.fromRGB(100, 160, 220),
+    
+    Tab = Color3.fromRGB(200, 220, 240),
+    TabStroke = Color3.fromRGB(170, 195, 220),
+    TabBackgroundSelected = Color3.fromRGB(100, 160, 220),
+    TabTextColor = Color3.fromRGB(50, 70, 100),
+    SelectedTabTextColor = Color3.fromRGB(255, 255, 255),
+    
+    Element = Color3.fromRGB(230, 240, 250),
+    ElementBackground = Color3.fromRGB(230, 240, 250),
+    ElementBackgroundHover = Color3.fromRGB(220, 232, 245),
+    SecondaryElementBackground = Color3.fromRGB(235, 245, 255),
+    ElementStroke = Color3.fromRGB(190, 210, 230),
+    SecondaryElementStroke = Color3.fromRGB(200, 218, 238),
+    ElementBorder = Color3.fromRGB(190, 210, 230),
+    ElementTransparency = 0.75,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(100, 160, 220),
+    SliderProgress = Color3.fromRGB(100, 160, 220),
+    SliderStroke = Color3.fromRGB(130, 185, 240),
+    
+    ToggleBackground = Color3.fromRGB(225, 238, 250),
+    ToggleEnabled = Color3.fromRGB(100, 160, 220),
+    ToggleDisabled = Color3.fromRGB(180, 198, 218),
+    ToggleEnabledStroke = Color3.fromRGB(130, 185, 240),
+    ToggleDisabledStroke = Color3.fromRGB(195, 210, 228),
+    ToggleEnabledOuterStroke = Color3.fromRGB(160, 180, 200),
+    ToggleDisabledOuterStroke = Color3.fromRGB(185, 200, 218),
+    
+    DropdownSelected = Color3.fromRGB(218, 232, 248),
+    DropdownUnselected = Color3.fromRGB(230, 242, 255),
+    
+    Input = Color3.fromRGB(248, 252, 255),
+    InputFocused = Color3.fromRGB(240, 248, 255),
+    InputStroke = Color3.fromRGB(175, 195, 218),
+    InputIndicator = Color3.fromRGB(100, 160, 220),
+    PlaceholderColor = Color3.fromRGB(130, 150, 175),
+    InElementBorder = Color3.fromRGB(190, 210, 230),
+    
+    Dialog = Color3.fromRGB(235, 245, 255),
+    DialogBorder = Color3.fromRGB(100, 160, 220),
+    DialogButton = Color3.fromRGB(230, 242, 255),
+    DialogButtonBorder = Color3.fromRGB(175, 195, 218),
+    DialogHolder = Color3.fromRGB(242, 250, 255),
+    DialogHolderLine = Color3.fromRGB(200, 218, 235),
+    DialogInput = Color3.fromRGB(248, 252, 255),
+    DialogInputLine = Color3.fromRGB(120, 155, 195),
+    
+    Text = Color3.fromRGB(40, 55, 75),
+    SubText = Color3.fromRGB(100, 125, 155),
+    
+    Hover = Color3.fromRGB(0, 0, 0),
+    Accent = Color3.fromRGB(100, 160, 220),
+    TitleBarLine = Color3.fromRGB(190, 210, 230),
+    
+    AcrylicMain = Color3.fromRGB(238, 248, 255),
+    AcrylicBorder = Color3.fromRGB(170, 192, 218),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(235, 245, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(225, 238, 250))
+    }),
+    AcrylicNoise = 0.72
+}
+
+-- ============================================
+-- MOCHA THEME (Warm Browns/Coffee)
+-- ============================================
+Themes.Mocha = {
+    TextColor = Color3.fromRGB(250, 245, 240),
+    Background = Color3.fromRGB(32, 25, 22),
+    Topbar = Color3.fromRGB(45, 35, 30),
+    Shadow = Color3.fromRGB(22, 18, 15),
+    
+    NotificationBackground = Color3.fromRGB(38, 30, 26),
+    NotificationActionsBackground = Color3.fromRGB(165, 120, 80),
+    
+    Tab = Color3.fromRGB(75, 58, 48),
+    TabStroke = Color3.fromRGB(110, 85, 65),
+    TabBackgroundSelected = Color3.fromRGB(165, 120, 80),
+    TabTextColor = Color3.fromRGB(250, 245, 240),
+    SelectedTabTextColor = Color3.fromRGB(35, 28, 24),
+    
+    Element = Color3.fromRGB(48, 38, 32),
+    ElementBackground = Color3.fromRGB(48, 38, 32),
+    ElementBackgroundHover = Color3.fromRGB(58, 46, 40),
+    SecondaryElementBackground = Color3.fromRGB(38, 30, 26),
+    ElementStroke = Color3.fromRGB(80, 62, 52),
+    SecondaryElementStroke = Color3.fromRGB(68, 54, 45),
+    ElementBorder = Color3.fromRGB(80, 62, 52),
+    ElementTransparency = 0.87,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(165, 120, 80),
+    SliderProgress = Color3.fromRGB(180, 135, 95),
+    SliderStroke = Color3.fromRGB(200, 155, 115),
+    
+    ToggleBackground = Color3.fromRGB(42, 34, 28),
+    ToggleEnabled = Color3.fromRGB(180, 135, 95),
+    ToggleDisabled = Color3.fromRGB(90, 72, 62),
+    ToggleEnabledStroke = Color3.fromRGB(200, 155, 115),
+    ToggleDisabledStroke = Color3.fromRGB(110, 88, 75),
+    ToggleEnabledOuterStroke = Color3.fromRGB(100, 80, 68),
+    ToggleDisabledOuterStroke = Color3.fromRGB(70, 58, 50),
+    
+    DropdownSelected = Color3.fromRGB(62, 48, 42),
+    DropdownUnselected = Color3.fromRGB(48, 38, 32),
+    
+    Input = Color3.fromRGB(48, 38, 32),
+    InputFocused = Color3.fromRGB(42, 34, 28),
+    InputStroke = Color3.fromRGB(100, 78, 65),
+    InputIndicator = Color3.fromRGB(165, 120, 80),
+    PlaceholderColor = Color3.fromRGB(160, 145, 135),
+    InElementBorder = Color3.fromRGB(80, 62, 52),
+    
+    Dialog = Color3.fromRGB(45, 35, 30),
+    DialogBorder = Color3.fromRGB(165, 120, 80),
+    DialogButton = Color3.fromRGB(55, 44, 38),
+    DialogButtonBorder = Color3.fromRGB(100, 78, 65),
+    DialogHolder = Color3.fromRGB(32, 25, 22),
+    DialogHolderLine = Color3.fromRGB(72, 56, 48),
+    DialogInput = Color3.fromRGB(52, 42, 36),
+    DialogInputLine = Color3.fromRGB(145, 110, 80),
+    
+    Text = Color3.fromRGB(250, 245, 240),
+    SubText = Color3.fromRGB(195, 180, 170),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(180, 135, 95),
+    TitleBarLine = Color3.fromRGB(80, 62, 52),
+    
+    AcrylicMain = Color3.fromRGB(28, 22, 18),
+    AcrylicBorder = Color3.fromRGB(95, 75, 62),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 40, 34)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(22, 18, 15))
+    }),
+    AcrylicNoise = 0.90
+}
+
+-- ============================================
+-- NEON THEME (Bright Fluorescent)
+-- ============================================
+Themes.Neon = {
+    TextColor = Color3.fromRGB(255, 255, 255),
+    Background = Color3.fromRGB(8, 8, 12),
+    Topbar = Color3.fromRGB(15, 15, 22),
+    Shadow = Color3.fromRGB(5, 5, 8),
+    
+    NotificationBackground = Color3.fromRGB(12, 12, 18),
+    NotificationActionsBackground = Color3.fromRGB(0, 255, 128),
+    
+    Tab = Color3.fromRGB(30, 30, 45),
+    TabStroke = Color3.fromRGB(0, 255, 128),
+    TabBackgroundSelected = Color3.fromRGB(0, 255, 128),
+    TabTextColor = Color3.fromRGB(255, 255, 255),
+    SelectedTabTextColor = Color3.fromRGB(0, 0, 0),
+    
+    Element = Color3.fromRGB(18, 18, 28),
+    ElementBackground = Color3.fromRGB(18, 18, 28),
+    ElementBackgroundHover = Color3.fromRGB(25, 25, 38),
+    SecondaryElementBackground = Color3.fromRGB(12, 12, 18),
+    ElementStroke = Color3.fromRGB(0, 200, 100),
+    SecondaryElementStroke = Color3.fromRGB(0, 150, 75),
+    ElementBorder = Color3.fromRGB(0, 200, 100),
+    ElementTransparency = 0.88,
+    HoverChange = 0.05,
+    
+    SliderBackground = Color3.fromRGB(0, 255, 128),
+    SliderProgress = Color3.fromRGB(0, 255, 128),
+    SliderStroke = Color3.fromRGB(100, 255, 180),
+    
+    ToggleBackground = Color3.fromRGB(15, 15, 22),
+    ToggleEnabled = Color3.fromRGB(0, 255, 128),
+    ToggleDisabled = Color3.fromRGB(50, 50, 70),
+    ToggleEnabledStroke = Color3.fromRGB(100, 255, 180),
+    ToggleDisabledStroke = Color3.fromRGB(70, 70, 95),
+    ToggleEnabledOuterStroke = Color3.fromRGB(0, 180, 90),
+    ToggleDisabledOuterStroke = Color3.fromRGB(40, 40, 55),
+    
+    DropdownSelected = Color3.fromRGB(25, 25, 38),
+    DropdownUnselected = Color3.fromRGB(15, 15, 22),
+    
+    Input = Color3.fromRGB(15, 15, 22),
+    InputFocused = Color3.fromRGB(12, 12, 18),
+    InputStroke = Color3.fromRGB(0, 200, 100),
+    InputIndicator = Color3.fromRGB(0, 255, 128),
+    PlaceholderColor = Color3.fromRGB(120, 140, 130),
+    InElementBorder = Color3.fromRGB(0, 200, 100),
+    
+    Dialog = Color3.fromRGB(15, 15, 22),
+    DialogBorder = Color3.fromRGB(0, 255, 128),
+    DialogButton = Color3.fromRGB(22, 22, 32),
+    DialogButtonBorder = Color3.fromRGB(0, 200, 100),
+    DialogHolder = Color3.fromRGB(8, 8, 12),
+    DialogHolderLine = Color3.fromRGB(0, 150, 75),
+    DialogInput = Color3.fromRGB(18, 18, 28),
+    DialogInputLine = Color3.fromRGB(0, 220, 110),
+    
+    Text = Color3.fromRGB(255, 255, 255),
+    SubText = Color3.fromRGB(150, 180, 165),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(0, 255, 128),
+    TitleBarLine = Color3.fromRGB(0, 180, 90),
+    
+    AcrylicMain = Color3.fromRGB(6, 6, 10),
+    AcrylicBorder = Color3.fromRGB(0, 180, 90),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 20, 18)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 8))
+    }),
+    AcrylicNoise = 0.92
+}
+
+-- ============================================
+-- SLATE THEME (Gray Tones)
+-- ============================================
+Themes.Slate = {
+    TextColor = Color3.fromRGB(235, 235, 240),
+    Background = Color3.fromRGB(40, 44, 52),
+    Topbar = Color3.fromRGB(55, 60, 70),
+    Shadow = Color3.fromRGB(30, 33, 40),
+    
+    NotificationBackground = Color3.fromRGB(48, 52, 62),
+    NotificationActionsBackground = Color3.fromRGB(140, 150, 170),
+    
+    Tab = Color3.fromRGB(80, 88, 100),
+    TabStroke = Color3.fromRGB(100, 110, 125),
+    TabBackgroundSelected = Color3.fromRGB(140, 150, 170),
+    TabTextColor = Color3.fromRGB(235, 235, 240),
+    SelectedTabTextColor = Color3.fromRGB(45, 50, 58),
+    
+    Element = Color3.fromRGB(55, 60, 70),
+    ElementBackground = Color3.fromRGB(55, 60, 70),
+    ElementBackgroundHover = Color3.fromRGB(65, 72, 82),
+    SecondaryElementBackground = Color3.fromRGB(48, 52, 62),
+    ElementStroke = Color3.fromRGB(85, 92, 105),
+    SecondaryElementStroke = Color3.fromRGB(75, 82, 95),
+    ElementBorder = Color3.fromRGB(85, 92, 105),
+    ElementTransparency = 0.87,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(140, 150, 170),
+    SliderProgress = Color3.fromRGB(150, 162, 182),
+    SliderStroke = Color3.fromRGB(175, 185, 205),
+    
+    ToggleBackground = Color3.fromRGB(50, 55, 65),
+    ToggleEnabled = Color3.fromRGB(150, 162, 182),
+    ToggleDisabled = Color3.fromRGB(85, 92, 105),
+    ToggleEnabledStroke = Color3.fromRGB(175, 185, 205),
+    ToggleDisabledStroke = Color3.fromRGB(105, 112, 125),
+    ToggleEnabledOuterStroke = Color3.fromRGB(115, 125, 140),
+    ToggleDisabledOuterStroke = Color3.fromRGB(72, 78, 90),
+    
+    DropdownSelected = Color3.fromRGB(68, 75, 88),
+    DropdownUnselected = Color3.fromRGB(55, 60, 70),
+    
+    Input = Color3.fromRGB(55, 60, 70),
+    InputFocused = Color3.fromRGB(50, 55, 65),
+    InputStroke = Color3.fromRGB(110, 118, 132),
+    InputIndicator = Color3.fromRGB(140, 150, 170),
+    PlaceholderColor = Color3.fromRGB(145, 152, 165),
+    InElementBorder = Color3.fromRGB(85, 92, 105),
+    
+    Dialog = Color3.fromRGB(55, 60, 70),
+    DialogBorder = Color3.fromRGB(140, 150, 170),
+    DialogButton = Color3.fromRGB(65, 72, 82),
+    DialogButtonBorder = Color3.fromRGB(110, 118, 132),
+    DialogHolder = Color3.fromRGB(40, 44, 52),
+    DialogHolderLine = Color3.fromRGB(80, 88, 100),
+    DialogInput = Color3.fromRGB(60, 66, 78),
+    DialogInputLine = Color3.fromRGB(130, 140, 158),
+    
+    Text = Color3.fromRGB(235, 235, 240),
+    SubText = Color3.fromRGB(165, 172, 185),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(150, 162, 182),
+    TitleBarLine = Color3.fromRGB(85, 92, 105),
+    
+    AcrylicMain = Color3.fromRGB(35, 38, 45),
+    AcrylicBorder = Color3.fromRGB(100, 108, 122),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(58, 64, 75)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 33, 40))
+    }),
+    AcrylicNoise = 0.88
+}
+
+-- ============================================
+-- COPPER THEME (Metallic Oranges)
+-- ============================================
+Themes.Copper = {
+    TextColor = Color3.fromRGB(255, 248, 240),
+    Background = Color3.fromRGB(35, 28, 25),
+    Topbar = Color3.fromRGB(50, 38, 32),
+    Shadow = Color3.fromRGB(25, 20, 18),
+    
+    NotificationBackground = Color3.fromRGB(42, 32, 28),
+    NotificationActionsBackground = Color3.fromRGB(200, 130, 80),
+    
+    Tab = Color3.fromRGB(85, 60, 48),
+    TabStroke = Color3.fromRGB(140, 95, 70),
+    TabBackgroundSelected = Color3.fromRGB(200, 130, 80),
+    TabTextColor = Color3.fromRGB(255, 248, 240),
+    SelectedTabTextColor = Color3.fromRGB(40, 30, 25),
+    
+    Element = Color3.fromRGB(55, 42, 35),
+    ElementBackground = Color3.fromRGB(55, 42, 35),
+    ElementBackgroundHover = Color3.fromRGB(68, 52, 44),
+    SecondaryElementBackground = Color3.fromRGB(42, 32, 28),
+    ElementStroke = Color3.fromRGB(100, 72, 58),
+    SecondaryElementStroke = Color3.fromRGB(85, 62, 50),
+    ElementBorder = Color3.fromRGB(100, 72, 58),
+    ElementTransparency = 0.86,
+    HoverChange = 0.05,
+    
+    SliderBackground = Color3.fromRGB(200, 130, 80),
+    SliderProgress = Color3.fromRGB(215, 145, 95),
+    SliderStroke = Color3.fromRGB(235, 170, 120),
+    
+    ToggleBackground = Color3.fromRGB(48, 36, 30),
+    ToggleEnabled = Color3.fromRGB(215, 145, 95),
+    ToggleDisabled = Color3.fromRGB(95, 72, 60),
+    ToggleEnabledStroke = Color3.fromRGB(235, 170, 120),
+    ToggleDisabledStroke = Color3.fromRGB(118, 90, 75),
+    ToggleEnabledOuterStroke = Color3.fromRGB(120, 88, 70),
+    ToggleDisabledOuterStroke = Color3.fromRGB(75, 58, 50),
+    
+    DropdownSelected = Color3.fromRGB(72, 55, 46),
+    DropdownUnselected = Color3.fromRGB(55, 42, 35),
+    
+    Input = Color3.fromRGB(55, 42, 35),
+    InputFocused = Color3.fromRGB(48, 36, 30),
+    InputStroke = Color3.fromRGB(130, 95, 78),
+    InputIndicator = Color3.fromRGB(200, 130, 80),
+    PlaceholderColor = Color3.fromRGB(175, 155, 145),
+    InElementBorder = Color3.fromRGB(100, 72, 58),
+    
+    Dialog = Color3.fromRGB(50, 38, 32),
+    DialogBorder = Color3.fromRGB(200, 130, 80),
+    DialogButton = Color3.fromRGB(62, 48, 40),
+    DialogButtonBorder = Color3.fromRGB(130, 95, 78),
+    DialogHolder = Color3.fromRGB(35, 28, 25),
+    DialogHolderLine = Color3.fromRGB(88, 65, 55),
+    DialogInput = Color3.fromRGB(58, 45, 38),
+    DialogInputLine = Color3.fromRGB(180, 120, 85),
+    
+    Text = Color3.fromRGB(255, 248, 240),
+    SubText = Color3.fromRGB(200, 180, 168),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(215, 145, 95),
+    TitleBarLine = Color3.fromRGB(100, 72, 58),
+    
+    AcrylicMain = Color3.fromRGB(30, 24, 22),
+    AcrylicBorder = Color3.fromRGB(120, 88, 70),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(58, 45, 38)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 20, 18))
+    }),
+    AcrylicNoise = 0.88
+}
+
+-- ============================================
+-- EMERALD THEME (Rich Greens)
+-- ============================================
+Themes.Emerald = {
+    TextColor = Color3.fromRGB(240, 255, 245),
+    Background = Color3.fromRGB(12, 35, 28),
+    Topbar = Color3.fromRGB(18, 48, 38),
+    Shadow = Color3.fromRGB(8, 25, 20),
+    
+    NotificationBackground = Color3.fromRGB(15, 42, 33),
+    NotificationActionsBackground = Color3.fromRGB(50, 180, 120),
+    
+    Tab = Color3.fromRGB(35, 85, 68),
+    TabStroke = Color3.fromRGB(60, 130, 100),
+    TabBackgroundSelected = Color3.fromRGB(50, 180, 120),
+    TabTextColor = Color3.fromRGB(240, 255, 245),
+    SelectedTabTextColor = Color3.fromRGB(12, 35, 28),
+    
+    Element = Color3.fromRGB(22, 55, 44),
+    ElementBackground = Color3.fromRGB(22, 55, 44),
+    ElementBackgroundHover = Color3.fromRGB(28, 68, 54),
+    SecondaryElementBackground = Color3.fromRGB(15, 42, 33),
+    ElementStroke = Color3.fromRGB(45, 95, 75),
+    SecondaryElementStroke = Color3.fromRGB(38, 80, 62),
+    ElementBorder = Color3.fromRGB(45, 95, 75),
+    ElementTransparency = 0.87,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(50, 180, 120),
+    SliderProgress = Color3.fromRGB(65, 195, 135),
+    SliderStroke = Color3.fromRGB(85, 215, 155),
+    
+    ToggleBackground = Color3.fromRGB(18, 48, 38),
+    ToggleEnabled = Color3.fromRGB(65, 195, 135),
+    ToggleDisabled = Color3.fromRGB(45, 85, 68),
+    ToggleEnabledStroke = Color3.fromRGB(85, 215, 155),
+    ToggleDisabledStroke = Color3.fromRGB(58, 105, 85),
+    ToggleEnabledOuterStroke = Color3.fromRGB(50, 110, 85),
+    ToggleDisabledOuterStroke = Color3.fromRGB(35, 68, 55),
+    
+    DropdownSelected = Color3.fromRGB(32, 72, 58),
+    DropdownUnselected = Color3.fromRGB(22, 55, 44),
+    
+    Input = Color3.fromRGB(22, 55, 44),
+    InputFocused = Color3.fromRGB(18, 48, 38),
+    InputStroke = Color3.fromRGB(60, 115, 92),
+    InputIndicator = Color3.fromRGB(50, 180, 120),
+    PlaceholderColor = Color3.fromRGB(130, 175, 155),
+    InElementBorder = Color3.fromRGB(45, 95, 75),
+    
+    Dialog = Color3.fromRGB(18, 48, 38),
+    DialogBorder = Color3.fromRGB(50, 180, 120),
+    DialogButton = Color3.fromRGB(26, 62, 50),
+    DialogButtonBorder = Color3.fromRGB(60, 115, 92),
+    DialogHolder = Color3.fromRGB(12, 35, 28),
+    DialogHolderLine = Color3.fromRGB(42, 88, 70),
+    DialogInput = Color3.fromRGB(24, 58, 46),
+    DialogInputLine = Color3.fromRGB(70, 160, 115),
+    
+    Text = Color3.fromRGB(240, 255, 245),
+    SubText = Color3.fromRGB(160, 200, 180),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(65, 195, 135),
+    TitleBarLine = Color3.fromRGB(45, 95, 75),
+    
+    AcrylicMain = Color3.fromRGB(10, 30, 24),
+    AcrylicBorder = Color3.fromRGB(55, 105, 85),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 60, 48)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 25, 20))
+    }),
+    AcrylicNoise = 0.90
+}
+
+-- ============================================
+-- SAPPHIRE THEME (Deep Blues)
+-- ============================================
+Themes.Sapphire = {
+    TextColor = Color3.fromRGB(235, 245, 255),
+    Background = Color3.fromRGB(12, 22, 45),
+    Topbar = Color3.fromRGB(18, 32, 62),
+    Shadow = Color3.fromRGB(8, 15, 32),
+    
+    NotificationBackground = Color3.fromRGB(15, 28, 55),
+    NotificationActionsBackground = Color3.fromRGB(60, 120, 200),
+    
+    Tab = Color3.fromRGB(35, 60, 105),
+    TabStroke = Color3.fromRGB(60, 95, 155),
+    TabBackgroundSelected = Color3.fromRGB(60, 120, 200),
+    TabTextColor = Color3.fromRGB(235, 245, 255),
+    SelectedTabTextColor = Color3.fromRGB(255, 255, 255),
+    
+    Element = Color3.fromRGB(22, 40, 75),
+    ElementBackground = Color3.fromRGB(22, 40, 75),
+    ElementBackgroundHover = Color3.fromRGB(30, 52, 92),
+    SecondaryElementBackground = Color3.fromRGB(15, 28, 55),
+    ElementStroke = Color3.fromRGB(50, 80, 135),
+    SecondaryElementStroke = Color3.fromRGB(42, 68, 115),
+    ElementBorder = Color3.fromRGB(50, 80, 135),
+    ElementTransparency = 0.86,
+    HoverChange = 0.04,
+    
+    SliderBackground = Color3.fromRGB(60, 120, 200),
+    SliderProgress = Color3.fromRGB(75, 140, 220),
+    SliderStroke = Color3.fromRGB(100, 165, 240),
+    
+    ToggleBackground = Color3.fromRGB(18, 32, 62),
+    ToggleEnabled = Color3.fromRGB(75, 140, 220),
+    ToggleDisabled = Color3.fromRGB(45, 70, 115),
+    ToggleEnabledStroke = Color3.fromRGB(100, 165, 240),
+    ToggleDisabledStroke = Color3.fromRGB(62, 95, 145),
+    ToggleEnabledOuterStroke = Color3.fromRGB(55, 92, 150),
+    ToggleDisabledOuterStroke = Color3.fromRGB(38, 58, 95),
+    
+    DropdownSelected = Color3.fromRGB(32, 55, 100),
+    DropdownUnselected = Color3.fromRGB(22, 40, 75),
+    
+    Input = Color3.fromRGB(22, 40, 75),
+    InputFocused = Color3.fromRGB(18, 32, 62),
+    InputStroke = Color3.fromRGB(65, 100, 160),
+    InputIndicator = Color3.fromRGB(60, 120, 200),
+    PlaceholderColor = Color3.fromRGB(140, 165, 200),
+    InElementBorder = Color3.fromRGB(50, 80, 135),
+    
+    Dialog = Color3.fromRGB(18, 32, 62),
+    DialogBorder = Color3.fromRGB(60, 120, 200),
+    DialogButton = Color3.fromRGB(28, 48, 88),
+    DialogButtonBorder = Color3.fromRGB(65, 100, 160),
+    DialogHolder = Color3.fromRGB(12, 22, 45),
+    DialogHolderLine = Color3.fromRGB(45, 72, 120),
+    DialogInput = Color3.fromRGB(25, 44, 82),
+    DialogInputLine = Color3.fromRGB(80, 130, 195),
+    
+    Text = Color3.fromRGB(235, 245, 255),
+    SubText = Color3.fromRGB(160, 185, 220),
+    
+    Hover = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(75, 140, 220),
+    TitleBarLine = Color3.fromRGB(50, 80, 135),
+    
+    AcrylicMain = Color3.fromRGB(10, 18, 38),
+    AcrylicBorder = Color3.fromRGB(58, 92, 150),
+    AcrylicGradient = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 45, 85)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(8, 15, 32))
+    }),
+    AcrylicNoise = 0.90
+}
+
 return Themes
+
 
 end
 
@@ -1980,8 +2880,8 @@ return Customizer
 
 end
 
--- Module: Core/Builder
-_modules["Core/Builder"] = function()
+-- Module: Core/builder
+_modules["Core/builder"] = function()
     local script = {Parent = {Parent = {}}}
 
 --[[
@@ -3035,431 +3935,478 @@ _modules["Utils/Animate"] = function()
     local script = {Parent = {Parent = {}}}
 
 --[[
-    NexusUI Animation Utilities
-    Smooth, flowing animations like Rayfield and Fluent
-    Easy-to-use API for developers
-]]
-
-local Animate = {}
-
-local Services
-local function InitDependencies()
-    local root = script.Parent.Parent
-    Services = _require("Core/Services")
-end
-
-local TweenService
-
--- ============================================
--- CORE ANIMATION FUNCTIONS
--- ============================================
-
---[[
-    Smooth tween with Rayfield/Fluent style
-    @param object - GUI object to animate
-    @param properties - Properties to animate {Position = ..., Size = ...}
-    @param duration - Animation duration (default 0.3)
-    @param style - Animation style preset or custom
-    @return Tween object
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                      NEXUS UI LIBRARY                         ║
+    ║                       GUI Framework                           ║
+    ║                          By Ryu                               ║
+    ║               ENHANCED ANIMATIONS v2.0                        ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    
+    Advanced animation library with prebuilt effects
     
     Usage:
-        Animate(button, {BackgroundColor3 = Color3.new(1,0,0)}, 0.3, "Smooth")
+        local Animations = NexusUI.Animations
+        Animations.FadeIn(element, 0.3)
+        Animations.SlideIn(element, "Left", 0.3)
+        Animations.Bounce(element)
+        Animations.Pulse(element)
+        Animations.Shake(element)
 ]]
-function Animate.Tween(object, properties, duration, style)
-    InitDependencies()
-    TweenService = TweenService or Services.TweenService
+
+local Animations = {}
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CORE TWEEN HELPER
+-- ════════════════════════════════════════════════════════════════════════════════
+
+local function Tween(object, properties, duration, easingStyle, easingDirection)
+    easingStyle = easingStyle or Enum.EasingStyle.Quart
+    easingDirection = easingDirection or Enum.EasingDirection.Out
     
-    if not object or not object.Parent then return end
-    
-    duration = duration or 0.3
-    
-    -- Preset styles
-    local tweenInfo
-    if style == "Smooth" or style == nil then
-        tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-    elseif style == "Bounce" then
-        tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    elseif style == "Elastic" then
-        tweenInfo = TweenInfo.new(duration * 1.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
-    elseif style == "Snappy" then
-        tweenInfo = TweenInfo.new(duration * 0.5, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
-    elseif style == "Flowing" then
-        tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-    elseif style == "Linear" then
-        tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-    elseif type(style) == "table" then
-        -- Custom TweenInfo
-        tweenInfo = TweenInfo.new(
-            style.Duration or duration,
-            style.EasingStyle or Enum.EasingStyle.Quart,
-            style.EasingDirection or Enum.EasingDirection.Out,
-            style.RepeatCount or 0,
-            style.Reverses or false,
-            style.DelayTime or 0
-        )
-    else
-        tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-    end
-    
+    local tweenInfo = TweenInfo.new(duration, easingStyle, easingDirection)
     local tween = TweenService:Create(object, tweenInfo, properties)
     tween:Play()
     return tween
 end
 
--- Shorthand for common animations
-Animate.To = Animate.Tween
+-- ════════════════════════════════════════════════════════════════════════════════
+-- FADE ANIMATIONS
+-- ════════════════════════════════════════════════════════════════════════════════
 
---[[
-    Chain multiple animations
-    @param animations - Array of {object, properties, duration, style}
-    @return Promise-like object with :Then()
-]]
-function Animate.Chain(animations)
-    local index = 1
+function Animations.FadeIn(element, duration, callback)
+    duration = duration or 0.3
+    element.Visible = true
     
-    local chain = {}
+    local transparencyProp = element:IsA("ImageLabel") or element:IsA("ImageButton") 
+        and "ImageTransparency" or "BackgroundTransparency"
     
-    function chain:Start()
-        if index > #animations then return end
-        
-        local anim = animations[index]
-        local tween = Animate.Tween(anim[1], anim[2], anim[3], anim[4])
-        
-        tween.Completed:Connect(function()
-            index = index + 1
-            chain:Start()
-        end)
+    element[transparencyProp] = 1
+    local tween = Tween(element, {[transparencyProp] = 0}, duration)
+    
+    -- Fade text if applicable
+    if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
+        element.TextTransparency = 1
+        Tween(element, {TextTransparency = 0}, duration)
     end
     
-    chain:Start()
-    return chain
-end
-
---[[
-    Parallel animations (all at once)
-    @param animations - Array of {object, properties, duration, style}
-]]
-function Animate.Parallel(animations)
-    for _, anim in ipairs(animations) do
-        Animate.Tween(anim[1], anim[2], anim[3], anim[4])
+    if callback then
+        tween.Completed:Connect(callback)
     end
-end
-
--- ============================================
--- PRESET EFFECTS
--- ============================================
-
--- Fade in
-function Animate.FadeIn(object, duration)
-    object.BackgroundTransparency = 1
-    return Animate.Tween(object, {BackgroundTransparency = 0}, duration or 0.3, "Smooth")
-end
-
--- Fade out
-function Animate.FadeOut(object, duration, destroy)
-    local tween = Animate.Tween(object, {BackgroundTransparency = 1}, duration or 0.3, "Smooth")
-    if destroy then
-        tween.Completed:Connect(function()
-            object:Destroy()
-        end)
-    end
+    
     return tween
 end
 
--- Slide in (from direction)
-function Animate.SlideIn(object, direction, duration)
-    direction = direction or "Right"
-    local originalPos = object.Position
-    
-    local startPos
-    if direction == "Right" then
-        startPos = UDim2.new(originalPos.X.Scale + 0.3, originalPos.X.Offset, originalPos.Y.Scale, originalPos.Y.Offset)
-    elseif direction == "Left" then
-        startPos = UDim2.new(originalPos.X.Scale - 0.3, originalPos.X.Offset, originalPos.Y.Scale, originalPos.Y.Offset)
-    elseif direction == "Top" then
-        startPos = UDim2.new(originalPos.X.Scale, originalPos.X.Offset, originalPos.Y.Scale - 0.3, originalPos.Y.Offset)
-    elseif direction == "Bottom" then
-        startPos = UDim2.new(originalPos.X.Scale, originalPos.X.Offset, originalPos.Y.Scale + 0.3, originalPos.Y.Offset)
-    end
-    
-    object.Position = startPos
-    return Animate.Tween(object, {Position = originalPos}, duration or 0.4, "Bounce")
-end
-
--- Slide out
-function Animate.SlideOut(object, direction, duration, destroy)
-    direction = direction or "Right"
-    local originalPos = object.Position
-    
-    local endPos
-    if direction == "Right" then
-        endPos = UDim2.new(originalPos.X.Scale + 0.3, originalPos.X.Offset, originalPos.Y.Scale, originalPos.Y.Offset)
-    elseif direction == "Left" then
-        endPos = UDim2.new(originalPos.X.Scale - 0.3, originalPos.X.Offset, originalPos.Y.Scale, originalPos.Y.Offset)
-    elseif direction == "Top" then
-        endPos = UDim2.new(originalPos.X.Scale, originalPos.X.Offset, originalPos.Y.Scale - 0.3, originalPos.Y.Offset)
-    elseif direction == "Bottom" then
-        endPos = UDim2.new(originalPos.X.Scale, originalPos.X.Offset, originalPos.Y.Scale + 0.3, originalPos.Y.Offset)
-    end
-    
-    local tween = Animate.Tween(object, {Position = endPos}, duration or 0.3, "Smooth")
-    if destroy then
-        tween.Completed:Connect(function()
-            object:Destroy()
-        end)
-    end
-    return tween
-end
-
--- Scale pop (like button press)
-function Animate.Pop(object, scale, duration)
-    scale = scale or 0.95
-    duration = duration or 0.1
-    
-    local originalSize = object.Size
-    local scaledSize = UDim2.new(
-        originalSize.X.Scale * scale, originalSize.X.Offset * scale,
-        originalSize.Y.Scale * scale, originalSize.Y.Offset * scale
-    )
-    
-    Animate.Tween(object, {Size = scaledSize}, duration, "Snappy")
-    task.delay(duration, function()
-        Animate.Tween(object, {Size = originalSize}, duration * 1.5, "Bounce")
-    end)
-end
-
--- Shake effect
-function Animate.Shake(object, intensity, duration)
-    intensity = intensity or 5
+function Animations.FadeOut(element, duration, destroy, callback)
     duration = duration or 0.3
     
-    local originalPos = object.Position
-    local shakeCount = math.floor(duration / 0.05)
+    local transparencyProp = element:IsA("ImageLabel") or element:IsA("ImageButton") 
+        and "ImageTransparency" or "BackgroundTransparency"
     
-    task.spawn(function()
-        for i = 1, shakeCount do
-            local offsetX = (math.random() - 0.5) * 2 * intensity
-            local offsetY = (math.random() - 0.5) * 2 * intensity
-            object.Position = UDim2.new(
-                originalPos.X.Scale, originalPos.X.Offset + offsetX,
-                originalPos.Y.Scale, originalPos.Y.Offset + offsetY
-            )
-            task.wait(0.05)
-        end
-        object.Position = originalPos
-    end)
-end
-
--- Pulse/Glow effect
-function Animate.Pulse(object, color, duration, repeat_count)
-    color = color or Color3.fromRGB(100, 150, 255)
-    duration = duration or 0.5
-    repeat_count = repeat_count or 1
+    local tween = Tween(element, {[transparencyProp] = 1}, duration)
     
-    local originalColor = object.BackgroundColor3
-    
-    for i = 1, repeat_count do
-        Animate.Tween(object, {BackgroundColor3 = color}, duration / 2, "Smooth")
-        task.wait(duration / 2)
-        Animate.Tween(object, {BackgroundColor3 = originalColor}, duration / 2, "Smooth")
-        task.wait(duration / 2)
+    if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
+        Tween(element, {TextTransparency = 1}, duration)
     end
+    
+    tween.Completed:Connect(function()
+        element.Visible = false
+        if destroy then element:Destroy() end
+        if callback then callback() end
+    end)
+    
+    return tween
 end
 
--- Typewriter effect for text
-function Animate.Typewriter(textLabel, text, speed)
-    speed = speed or 0.03
-    textLabel.Text = ""
+-- ════════════════════════════════════════════════════════════════════════════════
+-- SLIDE ANIMATIONS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Animations.SlideIn(element, direction, duration, callback)
+    direction = direction or "Left"
+    duration = duration or 0.35
     
-    task.spawn(function()
-        for i = 1, #text do
-            textLabel.Text = string.sub(text, 1, i)
-            task.wait(speed)
-        end
+    local originalPosition = element.Position
+    local offset = UDim2.fromOffset(0, 0)
+    
+    if direction == "Left" then
+        offset = UDim2.fromOffset(-element.AbsoluteSize.X - 50, 0)
+    elseif direction == "Right" then
+        offset = UDim2.fromOffset(element.AbsoluteSize.X + 50, 0)
+    elseif direction == "Top" then
+        offset = UDim2.fromOffset(0, -element.AbsoluteSize.Y - 50)
+    elseif direction == "Bottom" then
+        offset = UDim2.fromOffset(0, element.AbsoluteSize.Y + 50)
+    end
+    
+    element.Position = originalPosition + offset
+    element.Visible = true
+    
+    local tween = Tween(element, {Position = originalPosition}, duration, Enum.EasingStyle.Back)
+    
+    if callback then
+        tween.Completed:Connect(callback)
+    end
+    
+    return tween
+end
+
+function Animations.SlideOut(element, direction, duration, destroy, callback)
+    direction = direction or "Left"
+    duration = duration or 0.3
+    
+    local originalPosition = element.Position
+    local targetPosition = element.Position
+    
+    if direction == "Left" then
+        targetPosition = originalPosition + UDim2.fromOffset(-element.AbsoluteSize.X - 50, 0)
+    elseif direction == "Right" then
+        targetPosition = originalPosition + UDim2.fromOffset(element.AbsoluteSize.X + 50, 0)
+    elseif direction == "Top" then
+        targetPosition = originalPosition + UDim2.fromOffset(0, -element.AbsoluteSize.Y - 50)
+    elseif direction == "Bottom" then
+        targetPosition = originalPosition + UDim2.fromOffset(0, element.AbsoluteSize.Y + 50)
+    end
+    
+    local tween = Tween(element, {Position = targetPosition}, duration, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    
+    tween.Completed:Connect(function()
+        element.Visible = false
+        element.Position = originalPosition
+        if destroy then element:Destroy() end
+        if callback then callback() end
+    end)
+    
+    return tween
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- SCALE ANIMATIONS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Animations.ScaleIn(element, duration, callback)
+    duration = duration or 0.3
+    
+    local originalSize = element.Size
+    element.Size = UDim2.fromOffset(0, 0)
+    element.Visible = true
+    
+    local tween = Tween(element, {Size = originalSize}, duration, Enum.EasingStyle.Back)
+    
+    if callback then
+        tween.Completed:Connect(callback)
+    end
+    
+    return tween
+end
+
+function Animations.ScaleOut(element, duration, destroy, callback)
+    duration = duration or 0.25
+    
+    local originalSize = element.Size
+    local tween = Tween(element, {Size = UDim2.fromOffset(0, 0)}, duration, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    
+    tween.Completed:Connect(function()
+        element.Visible = false
+        element.Size = originalSize
+        if destroy then element:Destroy() end
+        if callback then callback() end
+    end)
+    
+    return tween
+end
+
+function Animations.PopIn(element, duration, callback)
+    duration = duration or 0.35
+    
+    local originalSize = element.Size
+    element.Size = UDim2.new(originalSize.X.Scale * 1.2, originalSize.X.Offset * 1.2, originalSize.Y.Scale * 1.2, originalSize.Y.Offset * 1.2)
+    element.BackgroundTransparency = 1
+    element.Visible = true
+    
+    Tween(element, {BackgroundTransparency = 0}, duration * 0.5)
+    local tween = Tween(element, {Size = originalSize}, duration, Enum.EasingStyle.Elastic)
+    
+    if callback then
+        tween.Completed:Connect(callback)
+    end
+    
+    return tween
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- ATTENTION ANIMATIONS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Animations.Bounce(element, intensity, duration)
+    intensity = intensity or 1.15
+    duration = duration or 0.4
+    
+    local originalSize = element.Size
+    local bigSize = UDim2.new(
+        originalSize.X.Scale * intensity, originalSize.X.Offset * intensity,
+        originalSize.Y.Scale * intensity, originalSize.Y.Offset * intensity
+    )
+    
+    Tween(element, {Size = bigSize}, duration * 0.4, Enum.EasingStyle.Quad)
+    task.delay(duration * 0.4, function()
+        Tween(element, {Size = originalSize}, duration * 0.6, Enum.EasingStyle.Elastic)
     end)
 end
 
--- Counter animation (number counting up/down)
-function Animate.Counter(textLabel, startValue, endValue, duration, prefix, suffix)
-    startValue = startValue or 0
-    duration = duration or 1
-    prefix = prefix or ""
-    suffix = suffix or ""
+function Animations.Shake(element, intensity, duration)
+    intensity = intensity or 8
+    duration = duration or 0.4
     
-    local startTime = tick()
+    local originalPosition = element.Position
+    local shakeCount = 8
+    local interval = duration / shakeCount
     
-    task.spawn(function()
-        while true do
-            local elapsed = tick() - startTime
-            local progress = math.min(elapsed / duration, 1)
-            local currentValue = math.floor(startValue + (endValue - startValue) * progress)
-            textLabel.Text = prefix .. tostring(currentValue) .. suffix
-            
-            if progress >= 1 then break end
-            task.wait()
-        end
-        textLabel.Text = prefix .. tostring(endValue) .. suffix
+    for i = 1, shakeCount do
+        task.delay(interval * (i - 1), function()
+            local offset = (i % 2 == 0) and intensity or -intensity
+            offset = offset * (1 - (i / shakeCount))  -- Decay
+            Tween(element, {Position = originalPosition + UDim2.fromOffset(offset, 0)}, interval * 0.9)
+        end)
+    end
+    
+    task.delay(duration, function()
+        Tween(element, {Position = originalPosition}, 0.1)
     end)
 end
 
--- Ripple effect (material design style)
-function Animate.Ripple(object, position, color)
-    color = color or Color3.fromRGB(255, 255, 255)
+function Animations.Pulse(element, pulses, interval)
+    pulses = pulses or 3
+    interval = interval or 0.5
     
-    local ripple = Instance.new("Frame")
-    ripple.Size = UDim2.fromOffset(0, 0)
-    ripple.Position = UDim2.fromOffset(position.X, position.Y)
-    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-    ripple.BackgroundColor3 = color
-    ripple.BackgroundTransparency = 0.6
-    ripple.ZIndex = 10
-    ripple.Parent = object
-    
-    Instance.new("UICorner", ripple).CornerRadius = UDim.new(1, 0)
-    
-    local maxSize = math.max(object.AbsoluteSize.X, object.AbsoluteSize.Y) * 2
-    
-    Animate.Tween(ripple, {
-        Size = UDim2.fromOffset(maxSize, maxSize),
-        BackgroundTransparency = 1
-    }, 0.5, "Smooth")
-    
-    task.delay(0.5, function()
-        ripple:Destroy()
-    end)
-end
-
--- Hover scale effect (add to any element)
-function Animate.AddHoverScale(object, hoverScale)
-    hoverScale = hoverScale or 1.02
-    
-    local originalSize = object.Size
-    
-    object.MouseEnter:Connect(function()
-        Animate.Tween(object, {
-            Size = UDim2.new(
-                originalSize.X.Scale * hoverScale, originalSize.X.Offset * hoverScale,
-                originalSize.Y.Scale * hoverScale, originalSize.Y.Offset * hoverScale
-            )
-        }, 0.2, "Bounce")
-    end)
-    
-    object.MouseLeave:Connect(function()
-        Animate.Tween(object, {Size = originalSize}, 0.2, "Smooth")
-    end)
-end
-
--- Hover color effect
-function Animate.AddHoverColor(object, hoverColor, normalColor)
-    normalColor = normalColor or object.BackgroundColor3
-    
-    object.MouseEnter:Connect(function()
-        Animate.Tween(object, {BackgroundColor3 = hoverColor}, 0.2, "Smooth")
-    end)
-    
-    object.MouseLeave:Connect(function()
-        Animate.Tween(object, {BackgroundColor3 = normalColor}, 0.2, "Smooth")
-    end)
-end
-
--- ============================================
--- SPRING PHYSICS (Like Flipper but simpler)
--- ============================================
-
-function Animate.Spring(options)
-    local value = options.Start or 0
-    local target = options.Target or 1
-    local damping = options.Damping or 0.8
-    local frequency = options.Frequency or 8
-    local onUpdate = options.OnUpdate or function() end
-    local onComplete = options.OnComplete or function() end
-    
-    local velocity = 0
-    local connection
-    
-    InitDependencies()
-    
-    connection = Services.RunService.Heartbeat:Connect(function(dt)
-        local displacement = target - value
-        local springForce = displacement * frequency * frequency
-        local dampingForce = velocity * damping * 2 * frequency
-        local acceleration = springForce - dampingForce
-        
-        velocity = velocity + acceleration * dt
-        value = value + velocity * dt
-        
-        onUpdate(value)
-        
-        if math.abs(displacement) < 0.001 and math.abs(velocity) < 0.001 then
-            connection:Disconnect()
-            onUpdate(target)
-            onComplete()
-        end
-    end)
-    
-    return {
-        Stop = function()
-            if connection then connection:Disconnect() end
-        end,
-        SetTarget = function(newTarget)
-            target = newTarget
-        end
-    }
-end
-
--- ============================================
--- EASY-USE SHORTHAND FUNCTIONS
--- ============================================
-
--- Make any element smoothly animated on hover
-function Animate.MakeInteractive(element)
-    Animate.AddHoverScale(element, 1.02)
-    
-    if element:IsA("TextButton") or element:IsA("ImageButton") then
-        element.MouseButton1Down:Connect(function()
-            Animate.Pop(element, 0.96, 0.05)
+    for i = 1, pulses do
+        task.delay(interval * (i - 1), function()
+            Tween(element, {BackgroundTransparency = 0.5}, interval * 0.4)
+            task.delay(interval * 0.4, function()
+                Tween(element, {BackgroundTransparency = 0}, interval * 0.5)
+            end)
         end)
     end
 end
 
--- Animate element visibility
-function Animate.Show(element, style)
-    element.Visible = true
-    style = style or "Fade"
+function Animations.Glow(element, color, duration, pulses)
+    color = color or Color3.fromRGB(0, 146, 214)
+    duration = duration or 1.5
+    pulses = pulses or 2
     
-    if style == "Fade" then
-        Animate.FadeIn(element, 0.3)
-    elseif style == "Slide" then
-        Animate.SlideIn(element, "Bottom", 0.3)
-    elseif style == "Pop" then
-        element.Size = UDim2.fromOffset(0, 0)
-        Animate.Tween(element, {Size = element:GetAttribute("OriginalSize") or UDim2.fromScale(1, 1)}, 0.3, "Bounce")
+    local stroke = element:FindFirstChildOfClass("UIStroke")
+    if not stroke then
+        stroke = Instance.new("UIStroke")
+        stroke.Thickness = 2
+        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+        stroke.Parent = element
+    end
+    
+    local originalColor = stroke.Color
+    local originalTransparency = stroke.Transparency
+    
+    for i = 1, pulses do
+        task.delay((duration / pulses) * (i - 1), function()
+            stroke.Color = color
+            Tween(stroke, {Transparency = 0}, duration / pulses / 2)
+            task.delay(duration / pulses / 2, function()
+                Tween(stroke, {Transparency = 0.7}, duration / pulses / 2)
+            end)
+        end)
+    end
+    
+    task.delay(duration, function()
+        stroke.Color = originalColor
+        stroke.Transparency = originalTransparency
+    end)
+end
+
+function Animations.Wiggle(element, angle, duration)
+    angle = angle or 5
+    duration = duration or 0.5
+    
+    local wiggleCount = 6
+    local interval = duration / wiggleCount
+    
+    for i = 1, wiggleCount do
+        task.delay(interval * (i - 1), function()
+            local rotation = (i % 2 == 0) and angle or -angle
+            rotation = rotation * (1 - (i / wiggleCount))
+            Tween(element, {Rotation = rotation}, interval * 0.9)
+        end)
+    end
+    
+    task.delay(duration, function()
+        Tween(element, {Rotation = 0}, 0.1)
+    end)
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CONTINUOUS ANIMATIONS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Animations.Spin(element, speed, clockwise)
+    speed = speed or 2  -- Seconds per rotation
+    clockwise = clockwise ~= false
+    
+    local connection
+    local currentRotation = element.Rotation
+    
+    connection = RunService.Heartbeat:Connect(function(dt)
+        if not element or not element.Parent then
+            connection:Disconnect()
+            return
+        end
+        
+        local rotationSpeed = (360 / speed) * dt
+        currentRotation = currentRotation + (clockwise and rotationSpeed or -rotationSpeed)
+        element.Rotation = currentRotation
+    end)
+    
+    return connection
+end
+
+function Animations.Float(element, distance, speed)
+    distance = distance or 5
+    speed = speed or 2
+    
+    local connection
+    local originalY = element.Position.Y.Offset
+    local time = 0
+    
+    connection = RunService.Heartbeat:Connect(function(dt)
+        if not element or not element.Parent then
+            connection:Disconnect()
+            return
+        end
+        
+        time = time + dt
+        local offset = math.sin(time * speed) * distance
+        element.Position = UDim2.new(
+            element.Position.X.Scale, element.Position.X.Offset,
+            element.Position.Y.Scale, originalY + offset
+        )
+    end)
+    
+    return connection
+end
+
+function Animations.Rainbow(element, speed, property)
+    speed = speed or 3
+    property = property or "BackgroundColor3"
+    
+    local connection
+    local time = 0
+    
+    connection = RunService.Heartbeat:Connect(function(dt)
+        if not element or not element.Parent then
+            connection:Disconnect()
+            return
+        end
+        
+        time = time + dt
+        local hue = (time * speed) % 1
+        element[property] = Color3.fromHSV(hue, 0.8, 1)
+    end)
+    
+    return connection
+end
+
+function Animations.Breathe(element, minTransparency, maxTransparency, speed)
+    minTransparency = minTransparency or 0
+    maxTransparency = maxTransparency or 0.3
+    speed = speed or 1.5
+    
+    local connection
+    local time = 0
+    
+    connection = RunService.Heartbeat:Connect(function(dt)
+        if not element or not element.Parent then
+            connection:Disconnect()
+            return
+        end
+        
+        time = time + dt
+        local alpha = (math.sin(time * speed * math.pi * 2) + 1) / 2
+        element.BackgroundTransparency = minTransparency + (maxTransparency - minTransparency) * alpha
+    end)
+    
+    return connection
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- TRANSITION ANIMATIONS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Animations.FlipH(element, duration, callback)
+    duration = duration or 0.3
+    
+    local uiScale = element:FindFirstChildOfClass("UIScale")
+    if not uiScale then
+        uiScale = Instance.new("UIScale")
+        uiScale.Parent = element
+    end
+    
+    Tween(uiScale, {Scale = Vector2.new(0, 1)}, duration / 2)
+    task.delay(duration / 2, function()
+        if callback then callback() end
+        Tween(uiScale, {Scale = Vector2.new(1, 1)}, duration / 2)
+    end)
+end
+
+function Animations.FlipV(element, duration, callback)
+    duration = duration or 0.3
+    
+    local uiScale = element:FindFirstChildOfClass("UIScale")
+    if not uiScale then
+        uiScale = Instance.new("UIScale")
+        uiScale.Parent = element
+    end
+    
+    Tween(uiScale, {Scale = Vector2.new(1, 0)}, duration / 2)
+    task.delay(duration / 2, function()
+        if callback then callback() end
+        Tween(uiScale, {Scale = Vector2.new(1, 1)}, duration / 2)
+    end)
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- UTILITY
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Animations.StopAll(element)
+    -- Cancel all tweens on element
+    for _, child in ipairs(element:GetChildren()) do
+        if child:IsA("Tween") then
+            child:Cancel()
+        end
     end
 end
 
-function Animate.Hide(element, style, destroy)
-    style = style or "Fade"
+function Animations.Chain(animations)
+    -- Execute animations in sequence
+    local index = 1
     
-    local function finish()
-        if destroy then
-            element:Destroy()
-        else
-            element.Visible = false
+    local function runNext()
+        if index <= #animations then
+            local anim = animations[index]
+            index = index + 1
+            
+            local tween = anim.func(table.unpack(anim.args or {}))
+            if tween and tween.Completed then
+                tween.Completed:Connect(runNext)
+            else
+                task.delay(anim.duration or 0.3, runNext)
+            end
         end
     end
     
-    if style == "Fade" then
-        local tween = Animate.FadeOut(element, 0.3)
-        tween.Completed:Connect(finish)
-    elseif style == "Slide" then
-        local tween = Animate.SlideOut(element, "Bottom", 0.3)
-        tween.Completed:Connect(finish)
-    else
-        finish()
-    end
+    runNext()
 end
 
-return Animate
+return Animations
 
 end
 
@@ -5977,6 +6924,905 @@ return LoadingScreen
 
 end
 
+-- Module: Components/KeySystem
+_modules["Components/KeySystem"] = function()
+    local script = {Parent = {Parent = {}}}
+
+--[[
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                      NEXUS UI LIBRARY                         ║
+    ║                       GUI Framework                           ║
+    ║                          By Ryu                               ║
+    ║                    KEY SYSTEM v1.0                            ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    
+    Usage:
+        local KeySystem = NexusUI:CreateKeySystem({
+            Title = "Script Hub",
+            Subtitle = "Enter your key to access",
+            Keys = {"KEY-ABC123", "KEY-DEF456"},
+            KeyLink = "https://link.example/getkey",
+            SaveKey = true,
+            Discord = "https://discord.gg/example"
+        })
+        
+        KeySystem:OnValidated(function()
+            -- Key was valid, continue with script
+            local Window = NexusUI:CreateWindow({...})
+        end)
+]]
+
+local KeySystem = {}
+KeySystem.__index = KeySystem
+
+local Creator
+local Flipper
+local Services
+
+local function InitDependencies()
+    local root = script.Parent.Parent
+    Creator = _require("Core/Creator")
+    Flipper = _require("Packages/Flipper")
+    Services = _require("Core/Services")
+end
+
+function KeySystem.new(options)
+    InitDependencies()
+    
+    options = options or {}
+    local Title = options.Title or "Key System"
+    local Subtitle = options.Subtitle or "Enter your key to continue"
+    local Logo = options.Logo
+    local BackgroundImage = options.BackgroundImage
+    local Keys = options.Keys or {}
+    local KeyLink = options.KeyLink
+    local ValidateCallback = options.ValidateCallback  -- Custom validation function
+    local SaveKey = options.SaveKey ~= false
+    local KeyName = options.KeyName or "NexusUI_Key"
+    local Discord = options.Discord
+    local MaxAttempts = options.MaxAttempts or 5
+    local OnSuccess = options.OnSuccess or function() end
+    local OnFailure = options.OnFailure or function() end
+    
+    local self = setmetatable({}, KeySystem)
+    self.Validated = false
+    self.Attempts = 0
+    self.MaxAttempts = MaxAttempts
+    self.OnSuccessCallback = OnSuccess
+    self.Keys = Keys
+    self.ValidateCallback = ValidateCallback
+    
+    -- Check for saved key first
+    if SaveKey then
+        local savedKey = self:GetSavedKey(KeyName)
+        if savedKey and self:ValidateKey(savedKey) then
+            self.Validated = true
+            task.defer(function()
+                self.OnSuccessCallback()
+            end)
+            return self
+        end
+    end
+    
+    -- Create ScreenGui
+    self.ScreenGui = Creator.New("ScreenGui", {
+        Name = "NexusUI_KeySystem",
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Global,
+        DisplayOrder = 50,
+        IgnoreGuiInset = true
+    })
+    
+    -- Parent to CoreGui
+    local success = pcall(function()
+        if gethui then
+            self.ScreenGui.Parent = gethui()
+        elseif syn and syn.protect_gui then
+            syn.protect_gui(self.ScreenGui)
+            self.ScreenGui.Parent = game:GetService("CoreGui")
+        else
+            self.ScreenGui.Parent = game:GetService("CoreGui")
+        end
+    end)
+    
+    if not success then
+        self.ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+    
+    -- Background
+    self.Background = Creator.New("Frame", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = Color3.fromRGB(15, 15, 18),
+        Parent = self.ScreenGui
+    })
+    
+    -- Background Image (if provided)
+    if BackgroundImage then
+        Creator.New("ImageLabel", {
+            Size = UDim2.fromScale(1, 1),
+            BackgroundTransparency = 1,
+            Image = BackgroundImage,
+            ImageTransparency = 0.7,
+            ScaleType = Enum.ScaleType.Crop,
+            Parent = self.Background
+        })
+    end
+    
+    -- Gradient overlay
+    Creator.New("Frame", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.5,
+        Parent = self.Background
+    }, {
+        Creator.New("UIGradient", {
+            Rotation = 90,
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0.3),
+                NumberSequenceKeypoint.new(0.5, 0.6),
+                NumberSequenceKeypoint.new(1, 0.3)
+            })
+        })
+    })
+    
+    -- Main Container
+    self.Container = Creator.New("Frame", {
+        Size = UDim2.fromOffset(380, 420),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 0.08,
+        Parent = self.Background,
+        ThemeTag = {BackgroundColor3 = "Dialog"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 16)}),
+        Creator.New("UIStroke", {
+            Thickness = 2,
+            Transparency = 0.5,
+            ThemeTag = {Color = "Accent"}
+        })
+    })
+    
+    -- Shadow
+    Creator.New("ImageLabel", {
+        Size = UDim2.new(1, 60, 1, 60),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Image = "rbxassetid://5028857472",
+        ImageColor3 = Color3.new(0, 0, 0),
+        ImageTransparency = 0.4,
+        BackgroundTransparency = 1,
+        ZIndex = -1,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(24, 24, 276, 276),
+        Parent = self.Container
+    })
+    
+    -- Logo/Icon
+    local logoY = 35
+    if Logo then
+        self.LogoImage = Creator.New("ImageLabel", {
+            Size = UDim2.fromOffset(80, 80),
+            Position = UDim2.new(0.5, 0, 0, logoY),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 1,
+            Image = Logo,
+            Parent = self.Container
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 16)})
+        })
+        logoY = logoY + 95
+    else
+        -- Default lock icon
+        self.LogoImage = Creator.New("ImageLabel", {
+            Size = UDim2.fromOffset(64, 64),
+            Position = UDim2.new(0.5, 0, 0, logoY),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 1,
+            Image = "rbxassetid://7733700996",  -- Key icon
+            ImageColor3 = Color3.fromRGB(0, 146, 214),
+            Parent = self.Container
+        })
+        logoY = logoY + 80
+    end
+    
+    -- Title
+    self.TitleLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 28),
+        Position = UDim2.new(0.5, 0, 0, logoY),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        Text = Title,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+        TextSize = 22,
+        Parent = self.Container,
+        ThemeTag = {TextColor3 = "Text"}
+    })
+    
+    -- Subtitle
+    self.SubtitleLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 20),
+        Position = UDim2.new(0.5, 0, 0, logoY + 32),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        Text = Subtitle,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 13,
+        TextTransparency = 0.4,
+        Parent = self.Container,
+        ThemeTag = {TextColor3 = "SubText"}
+    })
+    
+    -- Key Input Container
+    local inputY = logoY + 70
+    self.InputContainer = Creator.New("Frame", {
+        Size = UDim2.new(1, -48, 0, 46),
+        Position = UDim2.new(0.5, 0, 0, inputY),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 0.9,
+        Parent = self.Container,
+        ThemeTag = {BackgroundColor3 = "Input"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)}),
+        Creator.New("UIStroke", {
+            Transparency = 0.6,
+            Thickness = 1.5,
+            ThemeTag = {Color = "InputStroke"}
+        })
+    })
+    
+    self.KeyInput = Creator.New("TextBox", {
+        Size = UDim2.new(1, -20, 1, 0),
+        Position = UDim2.fromOffset(10, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        PlaceholderText = "Enter your key here...",
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        ClearTextOnFocus = false,
+        Parent = self.InputContainer,
+        ThemeTag = {TextColor3 = "Text", PlaceholderColor3 = "PlaceholderColor"}
+    })
+    
+    -- Status Label
+    self.StatusLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 18),
+        Position = UDim2.new(0.5, 0, 0, inputY + 52),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 12,
+        TextColor3 = Color3.fromRGB(255, 100, 100),
+        Parent = self.Container
+    })
+    
+    -- Submit Button
+    local buttonY = inputY + 80
+    self.SubmitButton = Creator.New("TextButton", {
+        Size = UDim2.new(1, -48, 0, 44),
+        Position = UDim2.new(0.5, 0, 0, buttonY),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 0,
+        Text = "🔓 Validate Key",
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        TextSize = 15,
+        Parent = self.Container,
+        ThemeTag = {BackgroundColor3 = "Accent", TextColor3 = "Background"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
+    })
+    
+    -- Submit button hover
+    local submitMotor, setSubmitHover = Creator.SpringMotor(0, self.SubmitButton, "BackgroundTransparency")
+    Creator.AddSignal(self.SubmitButton.MouseEnter, function()
+        setSubmitHover(0.15)
+    end)
+    Creator.AddSignal(self.SubmitButton.MouseLeave, function()
+        setSubmitHover(0)
+    end)
+    
+    -- Submit click
+    Creator.AddSignal(self.SubmitButton.MouseButton1Click, function()
+        self:TryValidate(self.KeyInput.Text, SaveKey, KeyName)
+    end)
+    
+    -- Enter key to submit
+    Creator.AddSignal(self.KeyInput.FocusLost, function(enterPressed)
+        if enterPressed then
+            self:TryValidate(self.KeyInput.Text, SaveKey, KeyName)
+        end
+    end)
+    
+    -- Get Key Button (if link provided)
+    if KeyLink then
+        local getKeyY = buttonY + 54
+        self.GetKeyButton = Creator.New("TextButton", {
+            Size = UDim2.new(1, -48, 0, 38),
+            Position = UDim2.new(0.5, 0, 0, getKeyY),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 0.85,
+            Text = "🔑 Get Key",
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+            TextSize = 14,
+            Parent = self.Container,
+            ThemeTag = {BackgroundColor3 = "DialogButton", TextColor3 = "Text"}
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)})
+        })
+        
+        Creator.AddSignal(self.GetKeyButton.MouseButton1Click, function()
+            if setclipboard then
+                setclipboard(KeyLink)
+                self.StatusLabel.Text = "Link copied to clipboard!"
+                self.StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 100)
+            end
+        end)
+    end
+    
+    -- Discord Button (if provided)
+    if Discord then
+        local discordY = KeyLink and (buttonY + 100) or (buttonY + 54)
+        self.DiscordButton = Creator.New("TextButton", {
+            Size = UDim2.new(0.5, -28, 0, 36),
+            Position = UDim2.new(0.5, 0, 0, discordY),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 0.85,
+            Text = "💬 Discord",
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+            TextSize = 13,
+            Parent = self.Container,
+            ThemeTag = {BackgroundColor3 = "DialogButton", TextColor3 = "Text"}
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)})
+        })
+        
+        Creator.AddSignal(self.DiscordButton.MouseButton1Click, function()
+            if setclipboard then
+                setclipboard(Discord)
+                self.StatusLabel.Text = "Discord link copied!"
+                self.StatusLabel.TextColor3 = Color3.fromRGB(100, 150, 255)
+            end
+        end)
+    end
+    
+    -- Attempts counter
+    self.AttemptsLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 16),
+        Position = UDim2.new(0.5, 0, 1, -20),
+        AnchorPoint = Vector2.new(0.5, 1),
+        BackgroundTransparency = 1,
+        Text = string.format("Attempts: 0/%d", MaxAttempts),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 11,
+        TextTransparency = 0.5,
+        Parent = self.Container,
+        ThemeTag = {TextColor3 = "SubText"}
+    })
+    
+    -- Open animation
+    self.Container.Size = UDim2.fromOffset(0, 0)
+    Creator.Tween(self.Container, {Size = UDim2.fromOffset(380, 420)}, 0.35, Enum.EasingStyle.Back)
+    
+    return self
+end
+
+function KeySystem:ValidateKey(key)
+    if not key or key == "" then
+        return false
+    end
+    
+    -- Custom validation
+    if self.ValidateCallback then
+        return self.ValidateCallback(key)
+    end
+    
+    -- Check against key list
+    for _, validKey in ipairs(self.Keys) do
+        if key == validKey then
+            return true
+        end
+    end
+    
+    return false
+end
+
+function KeySystem:TryValidate(key, saveKey, keyName)
+    self.Attempts = self.Attempts + 1
+    self.AttemptsLabel.Text = string.format("Attempts: %d/%d", self.Attempts, self.MaxAttempts)
+    
+    if self:ValidateKey(key) then
+        -- Success
+        self.Validated = true
+        self.StatusLabel.Text = "✅ Key validated successfully!"
+        self.StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+        
+        if saveKey then
+            self:SaveKeyData(keyName, key)
+        end
+        
+        -- Animate out
+        task.delay(1, function()
+            Creator.Tween(self.Container, {
+                Size = UDim2.fromOffset(0, 0),
+                BackgroundTransparency = 1
+            }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+            
+            Creator.Tween(self.Background, {BackgroundTransparency = 1}, 0.3)
+            
+            task.delay(0.35, function()
+                if self.ScreenGui then
+                    self.ScreenGui:Destroy()
+                end
+                self.OnSuccessCallback()
+            end)
+        end)
+    else
+        -- Failure
+        if self.Attempts >= self.MaxAttempts then
+            self.StatusLabel.Text = "❌ Max attempts reached!"
+            self.SubmitButton.Text = "Access Denied"
+            self.KeyInput.TextEditable = false
+            
+            if self.OnFailureCallback then
+                self.OnFailureCallback(self.Attempts)
+            end
+        else
+            self.StatusLabel.Text = "❌ Invalid key! Try again."
+            self.StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            
+            -- Shake animation
+            local original = self.InputContainer.Position
+            for i = 1, 6 do
+                local offset = (i % 2 == 0) and 8 or -8
+                Creator.Tween(self.InputContainer, {
+                    Position = original + UDim2.fromOffset(offset, 0)
+                }, 0.05)
+                task.wait(0.05)
+            end
+            Creator.Tween(self.InputContainer, {Position = original}, 0.05)
+        end
+    end
+end
+
+function KeySystem:GetSavedKey(keyName)
+    if not writefile then return nil end
+    
+    local success, content = pcall(function()
+        return readfile("NexusUI/" .. keyName .. ".txt")
+    end)
+    
+    return success and content or nil
+end
+
+function KeySystem:SaveKeyData(keyName, key)
+    if not writefile then return end
+    
+    pcall(function()
+        if not isfolder("NexusUI") then
+            makefolder("NexusUI")
+        end
+        writefile("NexusUI/" .. keyName .. ".txt", key)
+    end)
+end
+
+function KeySystem:OnValidated(callback)
+    self.OnSuccessCallback = callback
+    
+    if self.Validated then
+        callback()
+    end
+end
+
+function KeySystem:OnFailed(callback)
+    self.OnFailureCallback = callback
+end
+
+function KeySystem:IsValidated()
+    return self.Validated
+end
+
+return KeySystem
+
+end
+
+-- Module: Components/Popup
+_modules["Components/Popup"] = function()
+    local script = {Parent = {Parent = {}}}
+
+--[[
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                      NEXUS UI LIBRARY                         ║
+    ║                       GUI Framework                           ║
+    ║                          By Ryu                               ║
+    ║                       POPUP v1.0                              ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    
+    Usage:
+        NexusUI:Popup({
+            Type = "Confirm",  -- Confirm, Alert, Input, Custom
+            Title = "Important",
+            Content = "Are you sure?",
+            Buttons = {"Yes", "No"},
+            Icon = Icons.Warning,
+            Callback = function(result) end
+        })
+]]
+
+local Popup = {}
+Popup.__index = Popup
+
+local Creator
+local Flipper
+local Services
+
+local function InitDependencies()
+    local root = script.Parent.Parent
+    Creator = _require("Core/Creator")
+    Flipper = _require("Packages/Flipper")
+    Services = _require("Core/Services")
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- POPUP TYPES
+-- ════════════════════════════════════════════════════════════════════════════════
+
+local PopupTypes = {
+    Confirm = {
+        Icon = "rbxassetid://7743879203",
+        IconColor = Color3.fromRGB(255, 200, 50),
+        DefaultButtons = {"Confirm", "Cancel"}
+    },
+    Alert = {
+        Icon = "rbxassetid://7743878326",
+        IconColor = Color3.fromRGB(255, 100, 100),
+        DefaultButtons = {"OK"}
+    },
+    Success = {
+        Icon = "rbxassetid://10709790644",
+        IconColor = Color3.fromRGB(100, 255, 100),
+        DefaultButtons = {"OK"}
+    },
+    Info = {
+        Icon = "rbxassetid://7733687252",
+        IconColor = Color3.fromRGB(100, 150, 255),
+        DefaultButtons = {"OK"}
+    },
+    Input = {
+        Icon = "rbxassetid://7734053098",
+        IconColor = Color3.fromRGB(150, 150, 255),
+        DefaultButtons = {"Submit", "Cancel"},
+        HasInput = true
+    },
+    Custom = {
+        Icon = nil,
+        IconColor = nil,
+        DefaultButtons = {"OK"}
+    }
+}
+
+function Popup.new(options)
+    InitDependencies()
+    
+    options = options or {}
+    local Type = options.Type or "Alert"
+    local Title = options.Title or "Popup"
+    local Content = options.Content or ""
+    local Buttons = options.Buttons or PopupTypes[Type].DefaultButtons
+    local Icon = options.Icon or PopupTypes[Type].Icon
+    local IconColor = options.IconColor or PopupTypes[Type].IconColor
+    local Callback = options.Callback or function() end
+    local Placeholder = options.Placeholder or "Enter here..."
+    local DefaultValue = options.DefaultValue or ""
+    local Animation = options.Animation or "Scale"  -- Scale, Fade, Slide
+    local Closeable = options.Closeable ~= false
+    
+    local self = setmetatable({}, Popup)
+    self.Callback = Callback
+    self.Result = nil
+    self.InputValue = DefaultValue
+    self.Closed = false
+    
+    -- Create ScreenGui
+    self.ScreenGui = Creator.New("ScreenGui", {
+        Name = "NexusUI_Popup_" .. Services.HttpService:GenerateGUID(false),
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Global,
+        DisplayOrder = 100
+    })
+    
+    -- Parent to CoreGui
+    local success = pcall(function()
+        if gethui then
+            self.ScreenGui.Parent = gethui()
+        elseif syn and syn.protect_gui then
+            syn.protect_gui(self.ScreenGui)
+            self.ScreenGui.Parent = game:GetService("CoreGui")
+        else
+            self.ScreenGui.Parent = game:GetService("CoreGui")
+        end
+    end)
+    
+    if not success then
+        self.ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    end
+    
+    -- Backdrop (darkens screen)
+    self.Backdrop = Creator.New("TextButton", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = self.ScreenGui
+    })
+    
+    -- Popup container
+    local popupWidth = 340
+    local hasInput = PopupTypes[Type].HasInput
+    local popupHeight = hasInput and 220 or 180
+    
+    self.Container = Creator.New("Frame", {
+        Size = UDim2.fromOffset(popupWidth, popupHeight),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 0.05,
+        Parent = self.ScreenGui,
+        ThemeTag = {BackgroundColor3 = "Dialog"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 14)}),
+        Creator.New("UIStroke", {
+            Thickness = 1.5,
+            Transparency = 0.5,
+            ThemeTag = {Color = "Accent"}
+        })
+    })
+    
+    -- Shadow
+    Creator.New("ImageLabel", {
+        Size = UDim2.new(1, 40, 1, 40),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Image = "rbxassetid://5028857472",
+        ImageColor3 = Color3.new(0, 0, 0),
+        ImageTransparency = 0.5,
+        BackgroundTransparency = 1,
+        ZIndex = -1,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(24, 24, 276, 276),
+        Parent = self.Container
+    })
+    
+    -- Icon
+    if Icon then
+        self.IconLabel = Creator.New("ImageLabel", {
+            Size = UDim2.fromOffset(48, 48),
+            Position = UDim2.new(0.5, 0, 0, 24),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 1,
+            Image = Icon,
+            ImageColor3 = IconColor or Color3.new(1, 1, 1),
+            Parent = self.Container
+        })
+    end
+    
+    -- Title
+    local titleY = Icon and 80 or 20
+    self.TitleLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, -24, 0, 24),
+        Position = UDim2.new(0.5, 0, 0, titleY),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        Text = Title,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+        TextSize = 18,
+        Parent = self.Container,
+        ThemeTag = {TextColor3 = "Text"}
+    })
+    
+    -- Content
+    self.ContentLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, -32, 0, 40),
+        Position = UDim2.new(0.5, 0, 0, titleY + 28),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        Text = Content,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 14,
+        TextWrapped = true,
+        TextTransparency = 0.3,
+        Parent = self.Container,
+        ThemeTag = {TextColor3 = "SubText"}
+    })
+    
+    -- Input field (if Input type)
+    if hasInput then
+        self.InputFrame = Creator.New("Frame", {
+            Size = UDim2.new(1, -32, 0, 38),
+            Position = UDim2.new(0.5, 0, 0, titleY + 75),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 0.85,
+            Parent = self.Container,
+            ThemeTag = {BackgroundColor3 = "Input"}
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)}),
+            Creator.New("UIStroke", {
+                Transparency = 0.7,
+                ThemeTag = {Color = "InputStroke"}
+            })
+        })
+        
+        self.InputBox = Creator.New("TextBox", {
+            Size = UDim2.new(1, -16, 1, 0),
+            Position = UDim2.fromOffset(8, 0),
+            BackgroundTransparency = 1,
+            Text = DefaultValue,
+            PlaceholderText = Placeholder,
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+            TextSize = 14,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ClearTextOnFocus = false,
+            Parent = self.InputFrame,
+            ThemeTag = {TextColor3 = "Text", PlaceholderColor3 = "PlaceholderColor"}
+        })
+        
+        Creator.AddSignal(self.InputBox:GetPropertyChangedSignal("Text"), function()
+            self.InputValue = self.InputBox.Text
+        end)
+    end
+    
+    -- Buttons container
+    local buttonY = hasInput and (popupHeight - 55) or (popupHeight - 50)
+    self.ButtonContainer = Creator.New("Frame", {
+        Size = UDim2.new(1, -24, 0, 38),
+        Position = UDim2.new(0.5, 0, 0, buttonY),
+        AnchorPoint = Vector2.new(0.5, 0),
+        BackgroundTransparency = 1,
+        Parent = self.Container
+    }, {
+        Creator.New("UIListLayout", {
+            FillDirection = Enum.FillDirection.Horizontal,
+            Padding = UDim.new(0, 10),
+            HorizontalAlignment = Enum.HorizontalAlignment.Center
+        })
+    })
+    
+    -- Create buttons
+    local buttonWidth = (#Buttons == 1) and 120 or (popupWidth - 44) / #Buttons - 5
+    
+    for i, buttonText in ipairs(Buttons) do
+        local isPrimary = i == 1
+        
+        local button = Creator.New("TextButton", {
+            Size = UDim2.fromOffset(buttonWidth, 36),
+            BackgroundTransparency = isPrimary and 0 or 0.85,
+            Text = buttonText,
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+            TextSize = 13,
+            Parent = self.ButtonContainer,
+            ThemeTag = {
+                BackgroundColor3 = isPrimary and "Accent" or "DialogButton",
+                TextColor3 = isPrimary and "Background" or "Text"
+            }
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)})
+        })
+        
+        -- Hover effect
+        local hoverMotor, setHover = Creator.SpringMotor(isPrimary and 0 or 0.85, button, "BackgroundTransparency")
+        
+        Creator.AddSignal(button.MouseEnter, function()
+            setHover(isPrimary and 0.1 or 0.75)
+        end)
+        
+        Creator.AddSignal(button.MouseLeave, function()
+            setHover(isPrimary and 0 or 0.85)
+        end)
+        
+        Creator.AddSignal(button.MouseButton1Click, function()
+            self.Result = buttonText
+            if hasInput then
+                self.Callback(buttonText, self.InputValue)
+            else
+                self.Callback(buttonText)
+            end
+            self:Close()
+        end)
+    end
+    
+    -- Close button (X)
+    if Closeable then
+        local closeBtn = Creator.New("TextButton", {
+            Size = UDim2.fromOffset(28, 28),
+            Position = UDim2.new(1, -8, 0, 8),
+            AnchorPoint = Vector2.new(1, 0),
+            BackgroundTransparency = 1,
+            Text = "✕",
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+            TextSize = 16,
+            Parent = self.Container,
+            ThemeTag = {TextColor3 = "SubText"}
+        })
+        
+        Creator.AddSignal(closeBtn.MouseButton1Click, function()
+            self.Result = nil
+            self.Callback(nil)
+            self:Close()
+        end)
+    end
+    
+    -- Click backdrop to close
+    if Closeable then
+        Creator.AddSignal(self.Backdrop.MouseButton1Click, function()
+            self.Result = nil
+            self.Callback(nil)
+            self:Close()
+        end)
+    end
+    
+    -- Open animation
+    self:PlayOpenAnimation(Animation)
+    
+    return self
+end
+
+function Popup:PlayOpenAnimation(animationType)
+    local bd = self.Backdrop
+    local container = self.Container
+    
+    -- Fade in backdrop
+    Creator.Tween(bd, {BackgroundTransparency = 0.5}, 0.2)
+    
+    if animationType == "Scale" then
+        container.Size = UDim2.fromOffset(0, 0)
+        Creator.Tween(container, {Size = UDim2.fromOffset(340, self.Container.AbsoluteSize.Y or 180)}, 0.25, Enum.EasingStyle.Back)
+    elseif animationType == "Fade" then
+        container.BackgroundTransparency = 1
+        for _, child in ipairs(container:GetDescendants()) do
+            if child:IsA("GuiObject") then
+                child.Visible = false
+            end
+        end
+        Creator.Tween(container, {BackgroundTransparency = 0.05}, 0.2)
+        task.delay(0.1, function()
+            for _, child in ipairs(container:GetDescendants()) do
+                if child:IsA("GuiObject") then
+                    child.Visible = true
+                end
+            end
+        end)
+    elseif animationType == "Slide" then
+        container.Position = UDim2.new(0.5, 0, -0.5, 0)
+        Creator.Tween(container, {Position = UDim2.fromScale(0.5, 0.5)}, 0.3, Enum.EasingStyle.Back)
+    end
+end
+
+function Popup:Close()
+    if self.Closed then return end
+    self.Closed = true
+    
+    -- Close animation
+    Creator.Tween(self.Backdrop, {BackgroundTransparency = 1}, 0.15)
+    Creator.Tween(self.Container, {
+        Size = UDim2.fromOffset(0, 0),
+        BackgroundTransparency = 1
+    }, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    
+    task.delay(0.25, function()
+        if self.ScreenGui then
+            self.ScreenGui:Destroy()
+        end
+    end)
+end
+
+function Popup:Await()
+    repeat task.wait() until self.Closed
+    return self.Result, self.InputValue
+end
+
+return Popup
+
+end
+
 -- Module: Elements/Accordion
 _modules["Elements/Accordion"] = function()
     local script = {Parent = {Parent = {}}}
@@ -8047,7 +9893,15 @@ _modules["Elements/Dropdown"] = function()
     ║                      NEXUS UI LIBRARY                         ║
     ║                       GUI Framework                           ║
     ║                          By Ryu                               ║
+    ║                    ENHANCED DROPDOWN v3.0                     ║
     ╚═══════════════════════════════════════════════════════════════╝
+    
+    Features:
+    • Single and multi-select modes
+    • Scrollable dropdown with max visible items
+    • Clear visual distinction for options
+    • Smooth animations and hover effects
+    • Search/filter functionality
 ]]
 
 local Dropdown = {}
@@ -8055,11 +9909,13 @@ Dropdown.__index = Dropdown
 
 local Creator
 local Flipper
+local Services
 
 local function InitDependencies()
     local root = script.Parent.Parent
     Creator = _require("Core/Creator")
     Flipper = _require("Packages/Flipper")
+    Services = _require("Core/Services")
 end
 
 function Dropdown.new(parent, options)
@@ -8071,6 +9927,8 @@ function Dropdown.new(parent, options)
     local Values = options.Values or {}
     local Default = options.Default
     local Multi = options.Multi or false
+    local MaxVisibleItems = options.MaxVisibleItems or 6
+    local Searchable = options.Searchable or false
     local Callback = options.Callback or function() end
     
     local self = setmetatable({}, Dropdown)
@@ -8080,6 +9938,8 @@ function Dropdown.new(parent, options)
     self.Callback = Callback
     self.Open = false
     self.Options = {}
+    self.MaxVisibleItems = MaxVisibleItems
+    self.Searchable = Searchable
     
     if Multi then
         self.Value = Default or {}
@@ -8088,19 +9948,32 @@ function Dropdown.new(parent, options)
     end
     
     local hasDescription = Description ~= nil
-    local closedHeight = hasDescription and 48 or 36
+    local closedHeight = hasDescription and 50 or 38
+    local optionHeight = 34
     
-    -- Selected text
-    local selectedText = Multi and table.concat(self.Value, ", ") or tostring(self.Value)
+    -- Selected text display
+    local function getSelectedText()
+        if Multi then
+            if #self.Value == 0 then
+                return "Select..."
+            elseif #self.Value == 1 then
+                return tostring(self.Value[1])
+            else
+                return string.format("%d selected", #self.Value)
+            end
+        else
+            return self.Value == "" and "Select..." or tostring(self.Value)
+        end
+    end
     
-    -- Title
+    -- Title Label
     self.Label = Creator.New("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
         Text = Title,
         TextSize = 14,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Size = UDim2.new(1, -160, 0, 14),
-        Position = hasDescription and UDim2.fromOffset(12, 9) or UDim2.new(0, 12, 0.5, 0),
+        Size = UDim2.new(1, -160, 0, 16),
+        Position = hasDescription and UDim2.fromOffset(14, 10) or UDim2.new(0, 14, 0.5, 0),
         AnchorPoint = hasDescription and Vector2.zero or Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         ThemeTag = {TextColor3 = "Text"}
@@ -8114,66 +9987,93 @@ function Dropdown.new(parent, options)
             TextSize = 12,
             TextTransparency = 0.4,
             TextXAlignment = Enum.TextXAlignment.Left,
-            Size = UDim2.new(1, -160, 0, 12),
-            Position = UDim2.fromOffset(12, 27),
+            Size = UDim2.new(1, -160, 0, 14),
+            Position = UDim2.fromOffset(14, 28),
             BackgroundTransparency = 1,
             ThemeTag = {TextColor3 = "SubText"}
         })
     end
     
+    -- Selected value display
     self.SelectedLabel = Creator.New("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        Text = selectedText == "" and "Select..." or selectedText,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+        Text = getSelectedText(),
         TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Right,
         TextTruncate = Enum.TextTruncate.AtEnd,
-        Size = UDim2.new(0, 120, 0, 14),
-        Position = UDim2.new(1, -32, 0, hasDescription and 9 or 11),
+        Size = UDim2.new(0, 110, 0, 16),
+        Position = UDim2.new(1, -38, 0, hasDescription and 10 or 11),
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
         ThemeTag = {TextColor3 = "SubText"}
     })
     
-    -- Arrow icon
+    -- Arrow icon with rotation animation
     self.ArrowIcon = Creator.New("ImageLabel", {
         Image = "rbxassetid://10709790948",
-        Size = UDim2.fromOffset(14, 14),
-        Position = UDim2.new(1, -12, 0, hasDescription and 9 or 11),
+        Size = UDim2.fromOffset(16, 16),
+        Position = UDim2.new(1, -14, 0, hasDescription and 10 or 11),
         AnchorPoint = Vector2.new(1, 0),
         BackgroundTransparency = 1,
         ThemeTag = {ImageColor3 = "SubText"}
     })
     
-    -- Options layout
+    -- Options List Layout
     self.OptionsLayout = Creator.New("UIListLayout", {
         Padding = UDim.new(0, 4),
-        SortOrder = Enum.SortOrder.LayoutOrder
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center
     })
     
-    -- Option container
-    self.OptionsContainer = Creator.New("Frame", {
-        Size = UDim2.new(1, -16, 0, 0),
-        Position = UDim2.new(0, 8, 0, closedHeight + 4),
+    -- Scrollable option list
+    self.OptionsList = Creator.New("ScrollingFrame", {
+        Size = UDim2.new(1, -12, 1, -8),
+        Position = UDim2.fromOffset(6, 4),
         BackgroundTransparency = 1,
+        ScrollBarThickness = 4,
+        ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100),
+        ScrollingDirection = Enum.ScrollingDirection.Y,
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        CanvasSize = UDim2.fromScale(0, 0),
         ClipsDescendants = true
     }, {
         self.OptionsLayout,
         Creator.New("UIPadding", {
-            PaddingTop = UDim.new(0, 2),
-            PaddingBottom = UDim.new(0, 4)
+            PaddingTop = UDim.new(0, 4),
+            PaddingBottom = UDim.new(0, 4),
+            PaddingLeft = UDim.new(0, 4),
+            PaddingRight = UDim.new(0, 4)
         })
     })
     
-    -- Main Frame
-    self.Frame = Creator.New("TextButton", {
-        Size = UDim2.new(1, 0, 0, closedHeight),
-        BackgroundTransparency = 0.89,
-        Text = "",
+    -- Dropdown container (holds options when open)
+    self.OptionsContainer = Creator.New("Frame", {
+        Size = UDim2.new(1, -12, 0, 0),
+        Position = UDim2.new(0, 6, 0, closedHeight),
+        BackgroundTransparency = 0.3,
         ClipsDescendants = true,
-        Parent = parent,
-        ThemeTag = {BackgroundColor3 = "Element"}
+        ZIndex = 100,
+        ThemeTag = {BackgroundColor3 = "SecondaryElementBackground"}
     }, {
         Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)}),
+        Creator.New("UIStroke", {
+            Transparency = 0.6,
+            ThemeTag = {Color = "Accent"}
+        }),
+        self.OptionsList
+    })
+    
+    -- Main Frame (clicking triggers toggle)
+    self.Frame = Creator.New("TextButton", {
+        Size = UDim2.new(1, 0, 0, closedHeight),
+        BackgroundTransparency = 0.88,
+        Text = "",
+        ClipsDescendants = false,
+        Parent = parent,
+        AutoButtonColor = false,
+        ThemeTag = {BackgroundColor3 = "Element"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)}),
         Creator.New("UIStroke", {
             Transparency = 0.5,
             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
@@ -8186,12 +10086,13 @@ function Dropdown.new(parent, options)
         self.OptionsContainer
     })
     
-    -- Add options
-    for _, value in ipairs(Values) do
-        self:AddOption(value)
+    -- Add all options
+    for i, value in ipairs(Values) do
+        self:AddOption(value, i)
     end
     
     self.ClosedHeight = closedHeight
+    self.OptionHeight = optionHeight
     
     -- Animation motors
     self.HeightMotor = Flipper.SingleMotor.new(closedHeight)
@@ -8204,20 +10105,49 @@ function Dropdown.new(parent, options)
         self.ArrowIcon.Rotation = value
     end)
     
-    -- Click to toggle
+    self.ContainerHeightMotor = Flipper.SingleMotor.new(0)
+    self.ContainerHeightMotor:onStep(function(value)
+        self.OptionsContainer.Size = UDim2.new(1, -12, 0, value)
+    end)
+    
+    -- Click to toggle dropdown
     Creator.AddSignal(self.Frame.MouseButton1Click, function()
         self:Toggle()
     end)
     
-    -- Hover
-    self.HoverMotor, self.SetHover = Creator.SpringMotor(0.89, self.Frame, "BackgroundTransparency")
+    -- Hover effect
+    self.HoverMotor, self.SetHover = Creator.SpringMotor(0.88, self.Frame, "BackgroundTransparency")
     
     Creator.AddSignal(self.Frame.MouseEnter, function()
-        self.SetHover(0.85)
+        self.SetHover(0.82)
     end)
     
     Creator.AddSignal(self.Frame.MouseLeave, function()
-        self.SetHover(0.89)
+        if not self.Open then
+            self.SetHover(0.88)
+        end
+    end)
+    
+    -- Close when clicking outside
+    Creator.AddSignal(Services.UserInputService.InputBegan, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if self.Open then
+                local mousePos = input.Position
+                local framePos = self.Frame.AbsolutePosition
+                local frameSize = self.Frame.AbsoluteSize
+                
+                local isInside = mousePos.X >= framePos.X and 
+                                 mousePos.X <= framePos.X + frameSize.X and
+                                 mousePos.Y >= framePos.Y and 
+                                 mousePos.Y <= framePos.Y + frameSize.Y
+                
+                if not isInside then
+                    task.defer(function()
+                        self:Toggle()
+                    end)
+                end
+            end
+        end
     end)
     
     self.Root = self.Frame
@@ -8225,7 +10155,7 @@ function Dropdown.new(parent, options)
     return self
 end
 
-function Dropdown:AddOption(value)
+function Dropdown:AddOption(value, order)
     local isSelected = false
     if self.Multi then
         isSelected = table.find(self.Value, value) ~= nil
@@ -8233,37 +10163,51 @@ function Dropdown:AddOption(value)
         isSelected = self.Value == value
     end
     
-    -- Option label inside
+    -- Option text label
     local optionLabel = Creator.New("TextLabel", {
         Text = tostring(value),
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
         TextSize = 13,
-        Size = UDim2.new(1, -24, 1, 0),
-        Position = UDim2.fromOffset(10, 0),
+        Size = UDim2.new(1, -36, 1, 0),
+        Position = UDim2.fromOffset(12, 0),
         BackgroundTransparency = 1,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ThemeTag = {TextColor3 = "Text"}
+        ThemeTag = {TextColor3 = isSelected and "Accent" or "Text"}
     })
     
-    -- Checkmark for multi-select
+    -- Checkmark for multi-select or selection indicator
     local checkmark = nil
     if self.Multi then
         checkmark = Creator.New("ImageLabel", {
             Image = isSelected and "rbxassetid://10709790644" or "",
-            Size = UDim2.fromOffset(14, 14),
-            Position = UDim2.new(1, -8, 0.5, 0),
+            Size = UDim2.fromOffset(16, 16),
+            Position = UDim2.new(1, -10, 0.5, 0),
             AnchorPoint = Vector2.new(1, 0.5),
             BackgroundTransparency = 1,
             ThemeTag = {ImageColor3 = "Accent"}
         })
+    else
+        -- Radio-style indicator for single select
+        checkmark = Creator.New("Frame", {
+            Size = UDim2.fromOffset(8, 8),
+            Position = UDim2.new(1, -12, 0.5, 0),
+            AnchorPoint = Vector2.new(1, 0.5),
+            BackgroundTransparency = isSelected and 0 or 1,
+            ThemeTag = {BackgroundColor3 = "Accent"}
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
+        })
     end
     
+    -- Option button
     local option = Creator.New("TextButton", {
-        Size = UDim2.new(1, 0, 0, 32),
+        Size = UDim2.new(1, -8, 0, self.OptionHeight),
         Text = "",
-        BackgroundTransparency = isSelected and 0.85 or 0.92,
-        Parent = self.OptionsContainer,
-        ThemeTag = {BackgroundColor3 = isSelected and "DropdownSelected" or "Element"}
+        BackgroundTransparency = isSelected and 0.7 or 0.9,
+        Parent = self.OptionsList,
+        LayoutOrder = order or 0,
+        AutoButtonColor = false,
+        ThemeTag = {BackgroundColor3 = isSelected and "Accent" or "Element"}
     }, {
         Creator.New("UICorner", {CornerRadius = UDim.new(0, 6)}),
         optionLabel,
@@ -8271,115 +10215,158 @@ function Dropdown:AddOption(value)
     })
     
     -- Store reference
-    self.Options[value] = {Button = option, Label = optionLabel, Checkmark = checkmark, Selected = isSelected}
+    self.Options[value] = {
+        Button = option,
+        Label = optionLabel,
+        Checkmark = checkmark,
+        Selected = isSelected
+    }
     
-    -- Hover effect
+    -- Hover effects
     Creator.AddSignal(option.MouseEnter, function()
         if not self.Options[value].Selected then
-            Creator.Tween(option, {BackgroundTransparency = 0.88}, 0.1)
+            Creator.Tween(option, {BackgroundTransparency = 0.8}, 0.1)
         end
     end)
     
     Creator.AddSignal(option.MouseLeave, function()
         if not self.Options[value].Selected then
-            Creator.Tween(option, {BackgroundTransparency = 0.92}, 0.1)
+            Creator.Tween(option, {BackgroundTransparency = 0.9}, 0.1)
         end
     end)
     
-    -- Select
+    -- Selection handler
     Creator.AddSignal(option.MouseButton1Click, function()
         if self.Multi then
             local index = table.find(self.Value, value)
             if index then
+                -- Deselect
                 table.remove(self.Value, index)
                 self.Options[value].Selected = false
-                Creator.Tween(option, {BackgroundTransparency = 0.92}, 0.15)
+                Creator.Tween(option, {BackgroundTransparency = 0.9}, 0.15)
                 Creator.OverrideTag(option, {BackgroundColor3 = "Element"})
+                Creator.OverrideTag(optionLabel, {TextColor3 = "Text"})
                 if checkmark then checkmark.Image = "" end
             else
+                -- Select
                 table.insert(self.Value, value)
                 self.Options[value].Selected = true
-                Creator.Tween(option, {BackgroundTransparency = 0.85}, 0.15)
-                Creator.OverrideTag(option, {BackgroundColor3 = "DropdownSelected"})
+                Creator.Tween(option, {BackgroundTransparency = 0.7}, 0.15)
+                Creator.OverrideTag(option, {BackgroundColor3 = "Accent"})
+                Creator.OverrideTag(optionLabel, {TextColor3 = "Accent"})
                 if checkmark then checkmark.Image = "rbxassetid://10709790644" end
             end
             
-            local displayText = #self.Value > 0 and table.concat(self.Value, ", ") or "Select..."
-            self.SelectedLabel.Text = displayText
+            -- Update display
+            self:UpdateSelectedDisplay()
             self.Callback(self.Value)
         else
-            -- Deselect previous
+            -- Deselect all others first
             for v, opt in pairs(self.Options) do
                 if opt.Selected and v ~= value then
                     opt.Selected = false
-                    Creator.Tween(opt.Button, {BackgroundTransparency = 0.92}, 0.15)
+                    Creator.Tween(opt.Button, {BackgroundTransparency = 0.9}, 0.15)
                     Creator.OverrideTag(opt.Button, {BackgroundColor3 = "Element"})
+                    Creator.OverrideTag(opt.Label, {TextColor3 = "Text"})
+                    if opt.Checkmark then
+                        opt.Checkmark.BackgroundTransparency = 1
+                    end
                 end
             end
             
             -- Select current
             self.Value = value
             self.Options[value].Selected = true
-            Creator.Tween(option, {BackgroundTransparency = 0.85}, 0.15)
-            Creator.OverrideTag(option, {BackgroundColor3 = "DropdownSelected"})
-            self.SelectedLabel.Text = tostring(value)
+            Creator.Tween(option, {BackgroundTransparency = 0.7}, 0.15)
+            Creator.OverrideTag(option, {BackgroundColor3 = "Accent"})
+            Creator.OverrideTag(optionLabel, {TextColor3 = "Accent"})
+            if checkmark then
+                checkmark.BackgroundTransparency = 0
+            end
             
+            self:UpdateSelectedDisplay()
             self.Callback(value)
-            self:Toggle() -- Close after selection
+            self:Toggle() -- Close after single selection
         end
     end)
     
     return option
 end
 
+function Dropdown:UpdateSelectedDisplay()
+    if self.Multi then
+        if #self.Value == 0 then
+            self.SelectedLabel.Text = "Select..."
+        elseif #self.Value == 1 then
+            self.SelectedLabel.Text = tostring(self.Value[1])
+        else
+            self.SelectedLabel.Text = string.format("%d selected", #self.Value)
+        end
+    else
+        self.SelectedLabel.Text = self.Value == "" and "Select..." or tostring(self.Value)
+    end
+end
+
 function Dropdown:Toggle()
     self.Open = not self.Open
     
     if self.Open then
+        -- Calculate visible height
         local optionCount = 0
         for _ in pairs(self.Options) do optionCount = optionCount + 1 end
-        local optionsHeight = math.min(optionCount * 36 + 10, 200) -- Max height 200
-        self.HeightMotor:setGoal(Flipper.Spring.new(self.ClosedHeight + optionsHeight, {frequency = 6}))
+        
+        local visibleCount = math.min(optionCount, self.MaxVisibleItems)
+        local optionsHeight = visibleCount * (self.OptionHeight + 4) + 16
+        local totalHeight = self.ClosedHeight + optionsHeight + 8
+        
+        -- Animate open
+        self.HeightMotor:setGoal(Flipper.Spring.new(totalHeight, {frequency = 6, dampingRatio = 0.8}))
+        self.ContainerHeightMotor:setGoal(Flipper.Spring.new(optionsHeight, {frequency = 6, dampingRatio = 0.8}))
         self.ArrowMotor:setGoal(Flipper.Spring.new(180, {frequency = 6}))
-        self.OptionsContainer.ClipsDescendants = false
+        
+        self.SetHover(0.82)
     else
-        self.HeightMotor:setGoal(Flipper.Spring.new(self.ClosedHeight, {frequency = 6}))
+        -- Animate closed
+        self.HeightMotor:setGoal(Flipper.Spring.new(self.ClosedHeight, {frequency = 6, dampingRatio = 0.8}))
+        self.ContainerHeightMotor:setGoal(Flipper.Spring.new(0, {frequency = 6, dampingRatio = 0.8}))
         self.ArrowMotor:setGoal(Flipper.Spring.new(0, {frequency = 6}))
-        task.delay(0.15, function()
-            if not self.Open then
-                self.OptionsContainer.ClipsDescendants = true
-            end
-        end)
+        
+        self.SetHover(0.88)
     end
 end
 
 function Dropdown:Set(value, noCallback)
     if self.Multi then
         self.Value = type(value) == "table" and value or {value}
-        self.SelectedLabel.Text = #self.Value > 0 and table.concat(self.Value, ", ") or "Select..."
         
         -- Update visual state
         for v, opt in pairs(self.Options) do
             local isSelected = table.find(self.Value, v) ~= nil
             opt.Selected = isSelected
-            opt.Button.BackgroundTransparency = isSelected and 0.85 or 0.92
-            Creator.OverrideTag(opt.Button, {BackgroundColor3 = isSelected and "DropdownSelected" or "Element"})
+            opt.Button.BackgroundTransparency = isSelected and 0.7 or 0.9
+            Creator.OverrideTag(opt.Button, {BackgroundColor3 = isSelected and "Accent" or "Element"})
+            Creator.OverrideTag(opt.Label, {TextColor3 = isSelected and "Accent" or "Text"})
             if opt.Checkmark then
                 opt.Checkmark.Image = isSelected and "rbxassetid://10709790644" or ""
             end
         end
     else
         self.Value = value
-        self.SelectedLabel.Text = tostring(value)
         
         -- Update visual state
         for v, opt in pairs(self.Options) do
             local isSelected = v == value
             opt.Selected = isSelected
-            opt.Button.BackgroundTransparency = isSelected and 0.85 or 0.92
-            Creator.OverrideTag(opt.Button, {BackgroundColor3 = isSelected and "DropdownSelected" or "Element"})
+            opt.Button.BackgroundTransparency = isSelected and 0.7 or 0.9
+            Creator.OverrideTag(opt.Button, {BackgroundColor3 = isSelected and "Accent" or "Element"})
+            Creator.OverrideTag(opt.Label, {TextColor3 = isSelected and "Accent" or "Text"})
+            if opt.Checkmark then
+                opt.Checkmark.BackgroundTransparency = isSelected and 0 or 1
+            end
         end
     end
+    
+    self:UpdateSelectedDisplay()
     
     if not noCallback then
         self.Callback(self.Value)
@@ -8400,13 +10387,36 @@ function Dropdown:SetValues(values)
     self.Options = {}
     
     -- Add new options
-    for _, value in ipairs(values) do
-        self:AddOption(value)
+    for i, value in ipairs(values) do
+        self:AddOption(value, i)
     end
+    
+    -- Reset selection if value no longer exists
+    if self.Multi then
+        local validValues = {}
+        for _, v in ipairs(self.Value) do
+            if table.find(values, v) then
+                table.insert(validValues, v)
+            end
+        end
+        self.Value = validValues
+    else
+        if not table.find(values, self.Value) then
+            self.Value = values[1] or ""
+        end
+    end
+    
+    self:UpdateSelectedDisplay()
 end
 
 function Dropdown:Refresh()
     self:SetValues(self.Values)
+end
+
+function Dropdown:Destroy()
+    if self.Frame then
+        self.Frame:Destroy()
+    end
 end
 
 return Dropdown
