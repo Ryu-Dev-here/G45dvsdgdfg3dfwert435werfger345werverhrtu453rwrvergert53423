@@ -2769,13 +2769,28 @@ _modules["Utils/SoundManager"] = function()
     local script = {Parent = {Parent = {}}}
 
 --[[
-    NexusUI Sound Manager
-    Play music, sound effects, with full control
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                      NEXUS UI LIBRARY                         ║
+    ║                     Sound Manager Utility                     ║
+    ║                          By Ryu                               ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    
+    Features:
+    - Play sound effects with presets
+    - Background music with fade in/out
+    - Global volume control
+    - Enable/Disable all sounds toggle
 ]]
 
 local SoundManager = {}
 SoundManager.Sounds = {}
 SoundManager.CurrentMusic = nil
+
+-- Global settings
+SoundManager.GlobalVolume = 1.0      -- 0.0 to 1.0
+SoundManager.SoundsEnabled = true    -- Master switch
+SoundManager.MusicVolume = 1.0       -- Music-specific volume
+SoundManager.SFXVolume = 1.0         -- Sound effects volume
 
 local Services
 local function InitDependencies()
@@ -2783,8 +2798,92 @@ local function InitDependencies()
     Services = _require("Core/Services")
 end
 
+-- Set global volume (0-100 or 0-1)
+function SoundManager.SetGlobalVolume(volume)
+    -- Accept 0-100 and convert to 0-1
+    if volume > 1 then
+        volume = volume / 100
+    end
+    SoundManager.GlobalVolume = math.clamp(volume, 0, 1)
+    
+    -- Update all active sounds
+    for name, sound in pairs(SoundManager.Sounds) do
+        if sound and sound.BaseVolume then
+            sound.Volume = sound.BaseVolume * SoundManager.GlobalVolume * SoundManager.SFXVolume
+        end
+    end
+    
+    -- Update current music
+    if SoundManager.CurrentMusic and SoundManager.CurrentMusic.BaseVolume then
+        SoundManager.CurrentMusic.Volume = SoundManager.CurrentMusic.BaseVolume * SoundManager.GlobalVolume * SoundManager.MusicVolume
+    end
+end
+
+-- Get global volume (0-100)
+function SoundManager.GetGlobalVolume()
+    return SoundManager.GlobalVolume * 100
+end
+
+-- Enable/Disable all sounds
+function SoundManager.SetSoundsEnabled(enabled)
+    SoundManager.SoundsEnabled = enabled
+    
+    if not enabled then
+        -- Mute all
+        for name, sound in pairs(SoundManager.Sounds) do
+            if sound then sound.Volume = 0 end
+        end
+        if SoundManager.CurrentMusic then
+            SoundManager.CurrentMusic.Volume = 0
+        end
+    else
+        -- Restore volumes
+        for name, sound in pairs(SoundManager.Sounds) do
+            if sound and sound.BaseVolume then
+                sound.Volume = sound.BaseVolume * SoundManager.GlobalVolume * SoundManager.SFXVolume
+            end
+        end
+        if SoundManager.CurrentMusic and SoundManager.CurrentMusic.BaseVolume then
+            SoundManager.CurrentMusic.Volume = SoundManager.CurrentMusic.BaseVolume * SoundManager.GlobalVolume * SoundManager.MusicVolume
+        end
+    end
+end
+
+-- Check if sounds are enabled
+function SoundManager.AreSoundsEnabled()
+    return SoundManager.SoundsEnabled
+end
+
+-- Set music volume (0-100 or 0-1)
+function SoundManager.SetMusicVolume(volume)
+    if volume > 1 then
+        volume = volume / 100
+    end
+    SoundManager.MusicVolume = math.clamp(volume, 0, 1)
+    
+    if SoundManager.CurrentMusic and SoundManager.CurrentMusic.BaseVolume and SoundManager.SoundsEnabled then
+        SoundManager.CurrentMusic.Volume = SoundManager.CurrentMusic.BaseVolume * SoundManager.GlobalVolume * SoundManager.MusicVolume
+    end
+end
+
+-- Set SFX volume (0-100 or 0-1)
+function SoundManager.SetSFXVolume(volume)
+    if volume > 1 then
+        volume = volume / 100
+    end
+    SoundManager.SFXVolume = math.clamp(volume, 0, 1)
+    
+    for name, sound in pairs(SoundManager.Sounds) do
+        if sound and sound.BaseVolume and SoundManager.SoundsEnabled then
+            sound.Volume = sound.BaseVolume * SoundManager.GlobalVolume * SoundManager.SFXVolume
+        end
+    end
+end
+
 -- Play a sound effect
 function SoundManager.PlaySound(options)
+    if not SoundManager.SoundsEnabled then return nil end
+    
     InitDependencies()
     
     options = options or {}
@@ -2796,10 +2895,13 @@ function SoundManager.PlaySound(options)
     
     local sound = Instance.new("Sound")
     sound.SoundId = type(Id) == "number" and ("rbxassetid://" .. Id) or Id
-    sound.Volume = Volume
     sound.PlaybackSpeed = Pitch
     sound.Looped = Looped
     sound.Parent = Services.SoundService
+    
+    -- Store base volume for global volume calculations
+    sound.BaseVolume = Volume
+    sound.Volume = Volume * SoundManager.GlobalVolume * SoundManager.SFXVolume
     
     SoundManager.Sounds[Name] = sound
     sound:Play()
@@ -2816,11 +2918,13 @@ end
 
 -- Play music (stops previous)
 function SoundManager.PlayMusic(options)
+    if not SoundManager.SoundsEnabled then return nil end
+    
     InitDependencies()
     
     -- Stop current music
     if SoundManager.CurrentMusic then
-        SoundManager.StopMusic()
+        SoundManager.StopMusic(0.5)
     end
     
     options = options or {}
@@ -2835,11 +2939,15 @@ function SoundManager.PlayMusic(options)
     music.Looped = Looped
     music.Parent = Services.SoundService
     
+    -- Store base volume
+    music.BaseVolume = Volume
+    
     SoundManager.CurrentMusic = music
     music:Play()
     
-    -- Fade in
-    Services.TweenService:Create(music, TweenInfo.new(FadeIn), {Volume = Volume}):Play()
+    -- Fade in with global volume applied
+    local targetVolume = Volume * SoundManager.GlobalVolume * SoundManager.MusicVolume
+    Services.TweenService:Create(music, TweenInfo.new(FadeIn), {Volume = targetVolume}):Play()
     
     return music
 end
@@ -2862,13 +2970,6 @@ function SoundManager.StopMusic(fadeOut)
     end
 end
 
--- Set music volume
-function SoundManager.SetMusicVolume(volume)
-    if SoundManager.CurrentMusic then
-        SoundManager.CurrentMusic.Volume = volume
-    end
-end
-
 -- Pause/Resume music
 function SoundManager.PauseMusic()
     if SoundManager.CurrentMusic then
@@ -2879,6 +2980,15 @@ end
 function SoundManager.ResumeMusic()
     if SoundManager.CurrentMusic then
         SoundManager.CurrentMusic:Resume()
+    end
+end
+
+-- Stop a specific sound
+function SoundManager.StopSound(name)
+    local sound = SoundManager.Sounds[name]
+    if sound then
+        sound:Destroy()
+        SoundManager.Sounds[name] = nil
     end
 end
 
@@ -2900,7 +3010,8 @@ SoundManager.Presets = {
     Notification = {Id = 6026984224, Volume = 0.3},
     Toggle = {Id = 7072706796, Volume = 0.3},
     Open = {Id = 6895079576, Volume = 0.3},
-    Close = {Id = 6895079449, Volume = 0.3}
+    Close = {Id = 6895079449, Volume = 0.3},
+    Pop = {Id = 6895079801, Volume = 0.25}
 }
 
 function SoundManager.PlayPreset(presetName)
@@ -2908,6 +3019,11 @@ function SoundManager.PlayPreset(presetName)
     if preset then
         return SoundManager.PlaySound(preset)
     end
+end
+
+-- Add custom preset
+function SoundManager.AddPreset(name, options)
+    SoundManager.Presets[name] = options
 end
 
 return SoundManager
@@ -4908,10 +5024,17 @@ function Window.new(options)
     
     options = options or {}
     local Title = options.Title or "NexusUI"
-    local SubTitle = options.SubTitle or ""
+    local SubTitle = options.SubTitle or options.Subtitle or ""
     local Size = options.Size or UDim2.fromOffset(580, 460)
     local Theme = options.Theme or "Dark"
     local TabWidth = options.TabWidth or 150
+    local Resizable = options.Resizable ~= false
+    local MinSize = options.MinSize or Vector2.new(400, 300)
+    local MaxSize = options.MaxSize or Vector2.new(1200, 800)
+    local ToggleKey = options.ToggleKey or Enum.KeyCode.RightShift
+    local BackgroundImage = options.BackgroundImage
+    local BackgroundTransparency = options.BackgroundTransparency or 0
+    local Padding = options.Padding or 8
     
     -- Set theme
     Creator.SetTheme(Theme)
@@ -4926,6 +5049,12 @@ function Window.new(options)
     self.Minimized = false
     self.Maximized = false
     self.Hidden = false
+    self.Resizable = Resizable
+    self.MinSize = MinSize
+    self.MaxSize = MaxSize
+    self.ToggleKey = ToggleKey
+    self.OriginalSize = Size
+    self.TabWidth = TabWidth
     
     -- Create ScreenGui
     self.ScreenGui = Creator.New("ScreenGui", {
@@ -4959,11 +5088,32 @@ function Window.new(options)
         Parent = self.ScreenGui,
         ThemeTag = {BackgroundColor3 = "Background"}
     }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)}),
-        Creator.New("UIStroke", {
-            Transparency = 0.5,
-            ThemeTag = {Color = "ElementBorder"}
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
+    })
+    
+    -- Background image (optional)
+    if BackgroundImage then
+        self.BackgroundImage = Creator.New("ImageLabel", {
+            Image = BackgroundImage,
+            Size = UDim2.fromScale(1, 1),
+            AnchorPoint = Vector2.new(0, 0),
+            Position = UDim2.fromScale(0, 0),
+            BackgroundTransparency = 1,
+            ImageTransparency = BackgroundTransparency,
+            ScaleType = Enum.ScaleType.Crop,
+            ZIndex = 0,
+            Parent = self.Root
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
         })
+    end
+    
+    -- Border stroke
+    Creator.New("UIStroke", {
+        Transparency = 0.5,
+        Thickness = 1,
+        Parent = self.Root,
+        ThemeTag = {Color = "ElementBorder"}
     })
     
     -- Shadow
@@ -5001,8 +5151,8 @@ function Window.new(options)
     -- Title text
     self.TitleLabel = Creator.New("TextLabel", {
         Text = Title,
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular),
-        TextSize = 12,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        TextSize = 13,
         TextXAlignment = Enum.TextXAlignment.Left,
         AutomaticSize = Enum.AutomaticSize.X,
         Size = UDim2.fromScale(0, 1),
@@ -5030,12 +5180,11 @@ function Window.new(options)
     -- Title bar divider
     self.TitleBarLine = Creator.New("Frame", {
         Size = UDim2.new(1, 0, 0, 1),
-        Position = UDim2.new(0, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 42),
         BackgroundTransparency = 0.5,
         Parent = self.Root,
         ThemeTag = {BackgroundColor3 = "TitleBarLine"}
     })
-    self.TitleBarLine.Position = UDim2.new(0, 0, 0, 42)
     
     -- Control buttons container
     self.ButtonContainer = Creator.New("Frame", {
@@ -5049,7 +5198,7 @@ function Window.new(options)
     -- Control buttons
     self:CreateControlButton("Close", UDim2.new(1, -4, 0, 4), "rbxassetid://9886659671", function()
         self:Destroy()
-    end)
+    end, Color3.fromRGB(255, 100, 100))
     
     self:CreateControlButton("Maximize", UDim2.new(1, -40, 0, 4), "rbxassetid://9886659406", function()
         self:ToggleMaximize()
@@ -5062,13 +5211,15 @@ function Window.new(options)
     -- Left side: Tab holder
     self.TabHolder = Creator.New("ScrollingFrame", {
         Size = UDim2.new(0, TabWidth, 1, -52),
-        Position = UDim2.new(0, 8, 0, 48),
+        Position = UDim2.new(0, Padding, 0, 48),
         BackgroundTransparency = 1,
-        ScrollBarThickness = 0,
+        ScrollBarThickness = 2,
+        ScrollBarImageTransparency = 0.7,
         CanvasSize = UDim2.new(0, 0, 0, 0),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollingDirection = Enum.ScrollingDirection.Y,
-        Parent = self.Root
+        Parent = self.Root,
+        ThemeTag = {ScrollBarImageColor3 = "SubText"}
     }, {
         Creator.New("UIListLayout", {
             Padding = UDim.new(0, 4),
@@ -5077,13 +5228,14 @@ function Window.new(options)
         Creator.New("UIPadding", {
             PaddingTop = UDim.new(0, 4),
             PaddingLeft = UDim.new(0, 4),
-            PaddingRight = UDim.new(0, 4)
+            PaddingRight = UDim.new(0, 4),
+            PaddingBottom = UDim.new(0, 4)
         })
     })
     
     -- Tab selector indicator
     self.TabSelector = Creator.New("Frame", {
-        Size = UDim2.new(0, 3, 0, 20),
+        Size = UDim2.new(0, 3, 0, 24),
         Position = UDim2.new(0, 4, 0, 55),
         BackgroundTransparency = 0,
         Parent = self.Root,
@@ -5100,8 +5252,8 @@ function Window.new(options)
     
     -- Right side: Content container
     self.ContainerHolder = Creator.New("Frame", {
-        Size = UDim2.new(1, -TabWidth - 20, 1, -52),
-        Position = UDim2.new(0, TabWidth + 12, 0, 48),
+        Size = UDim2.new(1, -TabWidth - (Padding * 2 + 4), 1, -56),
+        Position = UDim2.new(0, TabWidth + Padding + 4, 0, 50),
         BackgroundTransparency = 1,
         ClipsDescendants = true,
         Parent = self.Root
@@ -5109,11 +5261,11 @@ function Window.new(options)
     
     -- Tab display title
     self.TabDisplay = Creator.New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = UDim2.new(0, 0, 0, 4),
+        Size = UDim2.new(1, 0, 0, 24),
+        Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1,
         Text = "",
-        FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
         TextSize = 18,
         TextXAlignment = Enum.TextXAlignment.Left,
         Parent = self.ContainerHolder,
@@ -5127,10 +5279,23 @@ function Window.new(options)
     -- Make window draggable
     Creator.MakeDraggable(self.Root, self.TitleBar)
     
+    -- Resizable handle (bottom right corner)
+    if Resizable then
+        self:CreateResizeHandle()
+    end
+    
+    -- Toggle keybind
+    Creator.AddSignal(Services.UserInputService.InputBegan, function(input, processed)
+        if processed then return end
+        if input.KeyCode == self.ToggleKey then
+            self:Toggle()
+        end
+    end)
+    
     return self
 end
 
-function Window:CreateControlButton(name, position, icon, callback)
+function Window:CreateControlButton(name, position, icon, callback, hoverColor)
     local button = Creator.New("TextButton", {
         Size = UDim2.new(0, 34, 1, -8),
         Position = position,
@@ -5155,7 +5320,10 @@ function Window:CreateControlButton(name, position, icon, callback)
     local motor, setTransparency = Creator.SpringMotor(1, button, "BackgroundTransparency")
     
     Creator.AddSignal(button.MouseEnter, function()
-        setTransparency(0.94)
+        setTransparency(0.92)
+        if hoverColor then
+            Creator.Tween(button, {BackgroundColor3 = hoverColor}, 0.15)
+        end
     end)
     
     Creator.AddSignal(button.MouseLeave, function()
@@ -5163,16 +5331,67 @@ function Window:CreateControlButton(name, position, icon, callback)
     end)
     
     Creator.AddSignal(button.MouseButton1Down, function()
-        setTransparency(0.96)
+        setTransparency(0.88)
     end)
     
     Creator.AddSignal(button.MouseButton1Up, function()
-        setTransparency(0.94)
+        setTransparency(0.92)
     end)
     
     Creator.AddSignal(button.MouseButton1Click, callback)
     
     return button
+end
+
+function Window:CreateResizeHandle()
+    local resizing = false
+    local startPos
+    local startSize
+    
+    self.ResizeHandle = Creator.New("TextButton", {
+        Size = UDim2.fromOffset(20, 20),
+        Position = UDim2.new(1, -2, 1, -2),
+        AnchorPoint = Vector2.new(1, 1),
+        BackgroundTransparency = 1,
+        Text = "",
+        Parent = self.Root,
+        ZIndex = 10
+    }, {
+        Creator.New("ImageLabel", {
+            Image = "rbxassetid://5574655095",
+            Size = UDim2.fromOffset(12, 12),
+            Position = UDim2.fromScale(0.5, 0.5),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundTransparency = 1,
+            ImageTransparency = 0.5,
+            Rotation = 90,
+            ThemeTag = {ImageColor3 = "SubText"}
+        })
+    })
+    
+    Creator.AddSignal(self.ResizeHandle.MouseButton1Down, function()
+        resizing = true
+        startPos = Services.UserInputService:GetMouseLocation()
+        startSize = self.Root.AbsoluteSize
+    end)
+    
+    Creator.AddSignal(Services.UserInputService.InputChanged, function(input)
+        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local currentPos = Services.UserInputService:GetMouseLocation()
+            local delta = currentPos - startPos
+            
+            local newWidth = math.clamp(startSize.X + delta.X, self.MinSize.X, self.MaxSize.X)
+            local newHeight = math.clamp(startSize.Y + delta.Y, self.MinSize.Y, self.MaxSize.Y)
+            
+            self.Root.Size = UDim2.fromOffset(newWidth, newHeight)
+        end
+    end)
+    
+    Creator.AddSignal(Services.UserInputService.InputEnded, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = false
+        end
+    end)
 end
 
 function Window:AddTab(options)
@@ -5206,25 +5425,70 @@ function Window:ToggleMinimize()
     self.Minimized = not self.Minimized
     
     if self.Minimized then
+        self.OriginalSize = self.Root.Size
         Creator.Tween(self.Root, {Size = UDim2.fromOffset(self.Root.AbsoluteSize.X, 42)}, 0.3)
     else
-        Creator.Tween(self.Root, {Size = self.OriginalSize or UDim2.fromOffset(580, 460)}, 0.3)
+        Creator.Tween(self.Root, {Size = self.OriginalSize}, 0.3)
     end
 end
 
 function Window:ToggleMaximize()
     self.Maximized = not self.Maximized
-    -- Implement maximize logic if needed
+    
+    if self.Maximized then
+        self.PreMaxSize = self.Root.Size
+        self.PreMaxPos = self.Root.Position
+        Creator.Tween(self.Root, {
+            Size = UDim2.new(1, -40, 1, -40),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }, 0.3)
+    else
+        Creator.Tween(self.Root, {
+            Size = self.PreMaxSize or self.OriginalSize,
+            Position = self.PreMaxPos or UDim2.new(0.5, 0, 0.5, 0)
+        }, 0.3)
+    end
+end
+
+function Window:Toggle()
+    if self.Hidden then
+        self:Show()
+    else
+        self:Hide()
+    end
 end
 
 function Window:Hide()
     self.Hidden = true
-    Creator.Tween(self.Root, {Position = UDim2.new(0.5, 0, 1.5, 0)}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    Creator.Tween(self.Root, {Position = UDim2.new(0.5, 0, 1.5, 0)}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
 end
 
 function Window:Show()
     self.Hidden = false
-    Creator.Tween(self.Root, {Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.5, Enum.EasingStyle.Back)
+    Creator.Tween(self.Root, {Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.4, Enum.EasingStyle.Back)
+end
+
+function Window:SetBackgroundImage(imageId, transparency)
+    if self.BackgroundImage then
+        self.BackgroundImage.Image = imageId
+        self.BackgroundImage.ImageTransparency = transparency or 0
+    else
+        self.BackgroundImage = Creator.New("ImageLabel", {
+            Image = imageId,
+            Size = UDim2.fromScale(1, 1),
+            BackgroundTransparency = 1,
+            ImageTransparency = transparency or 0,
+            ScaleType = Enum.ScaleType.Crop,
+            ZIndex = 0,
+            Parent = self.Root
+        }, {
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
+        })
+    end
+end
+
+function Window:SetSize(size)
+    Creator.Tween(self.Root, {Size = size}, 0.3)
 end
 
 function Window:Destroy()
@@ -7815,6 +8079,7 @@ function Dropdown.new(parent, options)
     self.Multi = Multi
     self.Callback = Callback
     self.Open = false
+    self.Options = {}
     
     if Multi then
         self.Value = Default or {}
@@ -7827,48 +8092,6 @@ function Dropdown.new(parent, options)
     
     -- Selected text
     local selectedText = Multi and table.concat(self.Value, ", ") or tostring(self.Value)
-    
-    self.SelectedLabel = Creator.New("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        Text = selectedText == "" and "None" or selectedText,
-        TextSize = 12,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        TextTruncate = Enum.TextTruncate.AtEnd,
-        Size = UDim2.new(0, 120, 0, 14),
-        Position = UDim2.new(1, -32, 0, hasDescription and 9 or 11),
-        AnchorPoint = Vector2.new(1, 0),
-        BackgroundTransparency = 1,
-        ThemeTag = {TextColor3 = "SubText"}
-    })
-    
-    -- Arrow icon
-    self.ArrowIcon = Creator.New("ImageLabel", {
-        Image = "rbxassetid://10709790948",
-        Size = UDim2.fromOffset(14, 14),
-        Position = UDim2.new(1, -12, 0, hasDescription and 9 or 11),
-        AnchorPoint = Vector2.new(1, 0),
-        BackgroundTransparency = 1,
-        ThemeTag = {ImageColor3 = "SubText"}
-    })
-    
-    -- Option container
-    self.OptionsLayout = Creator.New("UIListLayout", {
-        Padding = UDim.new(0, 2),
-        SortOrder = Enum.SortOrder.LayoutOrder
-    })
-    
-    self.OptionsContainer = Creator.New("Frame", {
-        Size = UDim2.new(1, -12, 0, 0),
-        Position = UDim2.new(0, 6, 0, closedHeight),
-        BackgroundTransparency = 1,
-        ClipsDescendants = true
-    }, {
-        self.OptionsLayout,
-        Creator.New("UIPadding", {
-            PaddingTop = UDim.new(0, 4),
-            PaddingBottom = UDim.new(0, 4)
-        })
-    })
     
     -- Title
     self.Label = Creator.New("TextLabel", {
@@ -7898,7 +8121,50 @@ function Dropdown.new(parent, options)
         })
     end
     
-    -- Frame
+    self.SelectedLabel = Creator.New("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        Text = selectedText == "" and "Select..." or selectedText,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Size = UDim2.new(0, 120, 0, 14),
+        Position = UDim2.new(1, -32, 0, hasDescription and 9 or 11),
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        ThemeTag = {TextColor3 = "SubText"}
+    })
+    
+    -- Arrow icon
+    self.ArrowIcon = Creator.New("ImageLabel", {
+        Image = "rbxassetid://10709790948",
+        Size = UDim2.fromOffset(14, 14),
+        Position = UDim2.new(1, -12, 0, hasDescription and 9 or 11),
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        ThemeTag = {ImageColor3 = "SubText"}
+    })
+    
+    -- Options layout
+    self.OptionsLayout = Creator.New("UIListLayout", {
+        Padding = UDim.new(0, 4),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    })
+    
+    -- Option container
+    self.OptionsContainer = Creator.New("Frame", {
+        Size = UDim2.new(1, -16, 0, 0),
+        Position = UDim2.new(0, 8, 0, closedHeight + 4),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true
+    }, {
+        self.OptionsLayout,
+        Creator.New("UIPadding", {
+            PaddingTop = UDim.new(0, 2),
+            PaddingBottom = UDim.new(0, 4)
+        })
+    })
+    
+    -- Main Frame
     self.Frame = Creator.New("TextButton", {
         Size = UDim2.new(1, 0, 0, closedHeight),
         BackgroundTransparency = 0.89,
@@ -7967,34 +8233,57 @@ function Dropdown:AddOption(value)
         isSelected = self.Value == value
     end
     
-    local option = Creator.New("TextButton", {
-        Size = UDim2.new(1, 0, 0, 28),
-        Text = "",
-        Parent = self.OptionsContainer,
-        ThemeTag = {BackgroundColor3 = isSelected and "DropdownSelected" or "DropdownUnselected"}
-    }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(0, 6)}),
-        Creator.New("TextLabel", {
-            Text = tostring(value),
-            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-            TextSize = 13,
-            Size = UDim2.new(1, -12, 1, 0),
-            Position = UDim2.fromOffset(10, 0),
-            BackgroundTransparency = 1,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ThemeTag = {TextColor3 = "Text"}
-        })
+    -- Option label inside
+    local optionLabel = Creator.New("TextLabel", {
+        Text = tostring(value),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 13,
+        Size = UDim2.new(1, -24, 1, 0),
+        Position = UDim2.fromOffset(10, 0),
+        BackgroundTransparency = 1,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ThemeTag = {TextColor3 = "Text"}
     })
     
-    -- Hover
-    local motor, setTransparency = Creator.SpringMotor(1, option, "BackgroundTransparency")
+    -- Checkmark for multi-select
+    local checkmark = nil
+    if self.Multi then
+        checkmark = Creator.New("ImageLabel", {
+            Image = isSelected and "rbxassetid://10709790644" or "",
+            Size = UDim2.fromOffset(14, 14),
+            Position = UDim2.new(1, -8, 0.5, 0),
+            AnchorPoint = Vector2.new(1, 0.5),
+            BackgroundTransparency = 1,
+            ThemeTag = {ImageColor3 = "Accent"}
+        })
+    end
     
+    local option = Creator.New("TextButton", {
+        Size = UDim2.new(1, 0, 0, 32),
+        Text = "",
+        BackgroundTransparency = isSelected and 0.85 or 0.92,
+        Parent = self.OptionsContainer,
+        ThemeTag = {BackgroundColor3 = isSelected and "DropdownSelected" or "Element"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 6)}),
+        optionLabel,
+        checkmark
+    })
+    
+    -- Store reference
+    self.Options[value] = {Button = option, Label = optionLabel, Checkmark = checkmark, Selected = isSelected}
+    
+    -- Hover effect
     Creator.AddSignal(option.MouseEnter, function()
-        setTransparency(0.9)
+        if not self.Options[value].Selected then
+            Creator.Tween(option, {BackgroundTransparency = 0.88}, 0.1)
+        end
     end)
     
     Creator.AddSignal(option.MouseLeave, function()
-        setTransparency(1)
+        if not self.Options[value].Selected then
+            Creator.Tween(option, {BackgroundTransparency = 0.92}, 0.1)
+        end
     end)
     
     -- Select
@@ -8003,31 +8292,40 @@ function Dropdown:AddOption(value)
             local index = table.find(self.Value, value)
             if index then
                 table.remove(self.Value, index)
-                Creator.OverrideTag(option, {BackgroundColor3 = "DropdownUnselected"})
+                self.Options[value].Selected = false
+                Creator.Tween(option, {BackgroundTransparency = 0.92}, 0.15)
+                Creator.OverrideTag(option, {BackgroundColor3 = "Element"})
+                if checkmark then checkmark.Image = "" end
             else
                 table.insert(self.Value, value)
+                self.Options[value].Selected = true
+                Creator.Tween(option, {BackgroundTransparency = 0.85}, 0.15)
                 Creator.OverrideTag(option, {BackgroundColor3 = "DropdownSelected"})
+                if checkmark then checkmark.Image = "rbxassetid://10709790644" end
             end
-            self.SelectedLabel.Text = table.concat(self.Value, ", ")
+            
+            local displayText = #self.Value > 0 and table.concat(self.Value, ", ") or "Select..."
+            self.SelectedLabel.Text = displayText
             self.Callback(self.Value)
         else
-            self.Value = value
-            self.SelectedLabel.Text = tostring(value)
-            
-            -- Update all options
-            for _, child in ipairs(self.OptionsContainer:GetChildren()) do
-                if child:IsA("TextButton") then
-                    local label = child:FindFirstChild("TextLabel")
-                    if label then
-                        Creator.OverrideTag(child, {
-                            BackgroundColor3 = label.Text == tostring(value) and "DropdownSelected" or "DropdownUnselected"
-                        })
-                    end
+            -- Deselect previous
+            for v, opt in pairs(self.Options) do
+                if opt.Selected and v ~= value then
+                    opt.Selected = false
+                    Creator.Tween(opt.Button, {BackgroundTransparency = 0.92}, 0.15)
+                    Creator.OverrideTag(opt.Button, {BackgroundColor3 = "Element"})
                 end
             end
             
+            -- Select current
+            self.Value = value
+            self.Options[value].Selected = true
+            Creator.Tween(option, {BackgroundTransparency = 0.85}, 0.15)
+            Creator.OverrideTag(option, {BackgroundColor3 = "DropdownSelected"})
+            self.SelectedLabel.Text = tostring(value)
+            
             self.Callback(value)
-            self:Toggle()
+            self:Toggle() -- Close after selection
         end
     end)
     
@@ -8038,24 +8336,54 @@ function Dropdown:Toggle()
     self.Open = not self.Open
     
     if self.Open then
-        local optionsHeight = self.OptionsLayout.AbsoluteContentSize.Y + 8
+        local optionCount = 0
+        for _ in pairs(self.Options) do optionCount = optionCount + 1 end
+        local optionsHeight = math.min(optionCount * 36 + 10, 200) -- Max height 200
         self.HeightMotor:setGoal(Flipper.Spring.new(self.ClosedHeight + optionsHeight, {frequency = 6}))
         self.ArrowMotor:setGoal(Flipper.Spring.new(180, {frequency = 6}))
+        self.OptionsContainer.ClipsDescendants = false
     else
         self.HeightMotor:setGoal(Flipper.Spring.new(self.ClosedHeight, {frequency = 6}))
         self.ArrowMotor:setGoal(Flipper.Spring.new(0, {frequency = 6}))
+        task.delay(0.15, function()
+            if not self.Open then
+                self.OptionsContainer.ClipsDescendants = true
+            end
+        end)
     end
 end
 
-function Dropdown:Set(value)
+function Dropdown:Set(value, noCallback)
     if self.Multi then
         self.Value = type(value) == "table" and value or {value}
-        self.SelectedLabel.Text = table.concat(self.Value, ", ")
+        self.SelectedLabel.Text = #self.Value > 0 and table.concat(self.Value, ", ") or "Select..."
+        
+        -- Update visual state
+        for v, opt in pairs(self.Options) do
+            local isSelected = table.find(self.Value, v) ~= nil
+            opt.Selected = isSelected
+            opt.Button.BackgroundTransparency = isSelected and 0.85 or 0.92
+            Creator.OverrideTag(opt.Button, {BackgroundColor3 = isSelected and "DropdownSelected" or "Element"})
+            if opt.Checkmark then
+                opt.Checkmark.Image = isSelected and "rbxassetid://10709790644" or ""
+            end
+        end
     else
         self.Value = value
         self.SelectedLabel.Text = tostring(value)
+        
+        -- Update visual state
+        for v, opt in pairs(self.Options) do
+            local isSelected = v == value
+            opt.Selected = isSelected
+            opt.Button.BackgroundTransparency = isSelected and 0.85 or 0.92
+            Creator.OverrideTag(opt.Button, {BackgroundColor3 = isSelected and "DropdownSelected" or "Element"})
+        end
     end
-    self.Callback(self.Value)
+    
+    if not noCallback then
+        self.Callback(self.Value)
+    end
 end
 
 function Dropdown:GetValue()
@@ -8066,16 +8394,19 @@ function Dropdown:SetValues(values)
     self.Values = values
     
     -- Clear existing options
-    for _, child in ipairs(self.OptionsContainer:GetChildren()) do
-        if child:IsA("TextButton") then
-            child:Destroy()
-        end
+    for _, opt in pairs(self.Options) do
+        if opt.Button then opt.Button:Destroy() end
     end
+    self.Options = {}
     
     -- Add new options
     for _, value in ipairs(values) do
         self:AddOption(value)
     end
+end
+
+function Dropdown:Refresh()
+    self:SetValues(self.Values)
 end
 
 return Dropdown
@@ -11248,57 +11579,10 @@ function Slider.new(parent, options)
     self.Increment = Increment
     self.Callback = Callback
     self.Dragging = false
+    self.Suffix = Suffix
     
     local hasDescription = Description ~= nil
-    local height = hasDescription and 58 or 48
-    
-    -- Value display
-    self.ValueLabel = Creator.New("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        Text = Default .. Suffix,
-        TextSize = 12,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        Size = UDim2.new(0, 70, 0, 14),
-        Position = UDim2.new(1, -12, 0, 9),
-        AnchorPoint = Vector2.new(1, 0),
-        BackgroundTransparency = 1,
-        ThemeTag = {TextColor3 = "SubText"}
-    })
-    
-    -- Progress bar fill
-    self.Fill = Creator.New("Frame", {
-        Size = UDim2.fromScale((Default - Min) / (Max - Min), 1),
-        BackgroundTransparency = 0,
-        ThemeTag = {BackgroundColor3 = "SliderProgress"}
-    }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
-    })
-    
-    -- Slider bar
-    self.SliderBar = Creator.New("Frame", {
-        Size = UDim2.new(1, -24, 0, 8),
-        Position = hasDescription and UDim2.new(0, 12, 0, 40) or UDim2.new(0, 12, 0, 30),
-        BackgroundTransparency = 0.5,
-        ThemeTag = {BackgroundColor3 = "SliderBackground"}
-    }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)}),
-        self.Fill
-    })
-    
-    -- Knob
-    self.Knob = Creator.New("Frame", {
-        Size = UDim2.fromOffset(16, 16),
-        Position = UDim2.new((Default - Min) / (Max - Min), -8, 0.5, 0),
-        AnchorPoint = Vector2.new(0, 0.5),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        Parent = self.SliderBar
-    }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)}),
-        Creator.New("UIStroke", {
-            Thickness = 2,
-            ThemeTag = {Color = "SliderStroke"}
-        })
-    })
+    local height = hasDescription and 62 or 52
     
     -- Title
     self.Label = Creator.New("TextLabel", {
@@ -11307,7 +11591,7 @@ function Slider.new(parent, options)
         TextSize = 14,
         TextXAlignment = Enum.TextXAlignment.Left,
         Size = UDim2.new(1, -90, 0, 14),
-        Position = UDim2.fromOffset(12, 9),
+        Position = UDim2.fromOffset(12, 10),
         BackgroundTransparency = 1,
         ThemeTag = {TextColor3 = "Text"}
     })
@@ -11321,17 +11605,69 @@ function Slider.new(parent, options)
             TextTransparency = 0.4,
             TextXAlignment = Enum.TextXAlignment.Left,
             Size = UDim2.new(1, -90, 0, 12),
-            Position = UDim2.fromOffset(12, 25),
+            Position = UDim2.fromOffset(12, 26),
             BackgroundTransparency = 1,
             ThemeTag = {TextColor3 = "SubText"}
         })
     end
     
+    -- Value display
+    self.ValueLabel = Creator.New("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+        Text = tostring(Default) .. Suffix,
+        TextSize = 13,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        Size = UDim2.new(0, 70, 0, 14),
+        Position = UDim2.new(1, -12, 0, 10),
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        ThemeTag = {TextColor3 = "Accent"}
+    })
+    
+    -- Progress bar fill
+    local initialPercent = (Default - Min) / (Max - Min)
+    
+    self.Fill = Creator.New("Frame", {
+        Size = UDim2.new(initialPercent, 0, 1, 0),
+        BackgroundTransparency = 0,
+        ThemeTag = {BackgroundColor3 = "SliderProgress"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
+    })
+    
+    -- Knob
+    self.Knob = Creator.New("Frame", {
+        Size = UDim2.fromOffset(18, 18),
+        Position = UDim2.new(initialPercent, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        ZIndex = 2
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)}),
+        Creator.New("UIStroke", {
+            Thickness = 2,
+            ThemeTag = {Color = "Accent"}
+        })
+    })
+    
+    -- Slider bar (clickable area)
+    self.SliderBar = Creator.New("TextButton", {
+        Size = UDim2.new(1, -24, 0, 10),
+        Position = UDim2.new(0, 12, 1, -16),
+        AnchorPoint = Vector2.new(0, 1),
+        BackgroundTransparency = 0.6,
+        Text = "",
+        ThemeTag = {BackgroundColor3 = "SliderBackground"}
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)}),
+        self.Fill,
+        self.Knob
+    })
+    
     -- Frame
-    self.Frame = Creator.New("TextButton", {
+    self.Frame = Creator.New("Frame", {
         Size = UDim2.new(1, 0, 0, height),
         BackgroundTransparency = 0.89,
-        Text = "",
         Parent = parent,
         ThemeTag = {BackgroundColor3 = "Element"}
     }, {
@@ -11348,11 +11684,9 @@ function Slider.new(parent, options)
     })
     
     -- Knob animation
-    self.KnobMotor = Flipper.GroupMotor.new({
-        Scale = 1
-    })
-    self.KnobMotor:onStep(function(values)
-        self.Knob.Size = UDim2.fromOffset(16 * values.Scale, 16 * values.Scale)
+    self.KnobMotor = Flipper.SingleMotor.new(1)
+    self.KnobMotor:onStep(function(scale)
+        self.Knob.Size = UDim2.fromOffset(18 * scale, 18 * scale)
     end)
     
     -- Drag functionality
@@ -11366,13 +11700,23 @@ function Slider.new(parent, options)
         local steppedValue = math.floor(rawValue / Increment + 0.5) * Increment
         steppedValue = math.clamp(steppedValue, Min, Max)
         
+        -- Round for display
+        if Increment >= 1 then
+            steppedValue = math.floor(steppedValue)
+        end
+        
         self:Set(steppedValue, true)
     end
+    
+    Creator.AddSignal(self.SliderBar.MouseButton1Down, function()
+        self.Dragging = true
+        self.KnobMotor:setGoal(Flipper.Spring.new(1.15, {frequency = 8}))
+    end)
     
     Creator.AddSignal(self.SliderBar.InputBegan, function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             self.Dragging = true
-            self.KnobMotor:setGoal({Scale = Flipper.Spring.new(1.2)})
+            self.KnobMotor:setGoal(Flipper.Spring.new(1.15, {frequency = 8}))
             updateValue(input)
         end
     end)
@@ -11386,24 +11730,27 @@ function Slider.new(parent, options)
     Creator.AddSignal(Services.UserInputService.InputEnded, function(input)
         if self.Dragging and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
             self.Dragging = false
-            self.KnobMotor:setGoal({Scale = Flipper.Spring.new(1)})
+            self.KnobMotor:setGoal(Flipper.Spring.new(1, {frequency = 8}))
             self.Callback(self.Value)
         end
     end)
     
-    -- Hover
+    -- Hover effect on frame
     self.HoverMotor, self.SetHover = Creator.SpringMotor(0.89, self.Frame, "BackgroundTransparency")
     
-    Creator.AddSignal(self.Frame.MouseEnter, function()
-        self.SetHover(0.85)
+    Creator.AddSignal(self.Frame.InputBegan, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            self.SetHover(0.85)
+        end
     end)
     
-    Creator.AddSignal(self.Frame.MouseLeave, function()
-        self.SetHover(0.89)
+    Creator.AddSignal(self.Frame.InputEnded, function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            self.SetHover(0.89)
+        end
     end)
     
     self.Root = self.Frame
-    self.Suffix = Suffix
     
     return self
 end
@@ -11413,8 +11760,16 @@ function Slider:Set(value, skipCallback)
     self.Value = value
     
     local percent = (value - self.Min) / (self.Max - self.Min)
-    self.Fill.Size = UDim2.fromScale(percent, 1)
-    self.Knob.Position = UDim2.new(percent, -8, 0.5, 0)
+    
+    -- Update visuals with smooth tween if not dragging
+    if self.Dragging then
+        self.Fill.Size = UDim2.new(percent, 0, 1, 0)
+        self.Knob.Position = UDim2.new(percent, 0, 0.5, 0)
+    else
+        Creator.Tween(self.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.08)
+        Creator.Tween(self.Knob, {Position = UDim2.new(percent, 0, 0.5, 0)}, 0.08)
+    end
+    
     self.ValueLabel.Text = tostring(value) .. self.Suffix
     
     if not skipCallback and self.Callback then
