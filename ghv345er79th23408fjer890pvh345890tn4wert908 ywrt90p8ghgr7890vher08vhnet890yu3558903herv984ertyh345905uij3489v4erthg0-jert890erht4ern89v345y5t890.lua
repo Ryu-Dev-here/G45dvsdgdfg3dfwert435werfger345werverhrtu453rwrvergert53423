@@ -1397,7 +1397,7 @@ Creator.Themes = {}
 Creator.ThemeObjects = {}
 Creator.DefaultProperties = {}
 
-local Services = _require("Parent/Services")
+local Services = _require("Core/Services")
 local TweenService = Services.TweenService
 
 -- ============================================
@@ -4167,473 +4167,6 @@ return Dialog
 
 end
 
--- Module: Components/LoadingScreen
-_modules["Components/LoadingScreen"] = function()
-    local script = {Parent = {Parent = {}}}
-
---[[
-    NexusUI Loading Screen Component
-    Beautiful animated loading screen with progress, custom images, music, and effects
-]]
-
-local LoadingScreen = {}
-LoadingScreen.__index = LoadingScreen
-
-local Creator, Flipper, Services
-
-local function InitDependencies()
-    local root = script.Parent.Parent
-    Creator = _require("Core/Creator")
-    Flipper = _require("Packages/Flipper")
-    Services = _require("Core/Services")
-end
-
-function LoadingScreen.new(options)
-    InitDependencies()
-    
-    options = options or {}
-    local Title = options.Title or "Loading..."
-    local Subtitle = options.Subtitle or "Please wait"
-    local LogoImage = options.Logo -- Custom logo image
-    local BackgroundImage = options.Background -- Custom background
-    local BackgroundColor = options.BackgroundColor or Color3.fromRGB(15, 15, 18)
-    local AccentColor = options.AccentColor or Color3.fromRGB(100, 150, 255)
-    local Music = options.Music -- Background music ID
-    local LoadingStyle = options.Style or "Modern" -- Modern, Minimal, Gaming, Cinematic
-    local BlurBackground = options.Blur ~= false
-    local Particles = options.Particles ~= false
-    
-    local self = setmetatable({}, LoadingScreen)
-    self.Progress = 0
-    self.Tasks = {}
-    self.CurrentTask = ""
-    self.Completed = false
-    
-    -- Create ScreenGui
-    self.ScreenGui = Creator.New("ScreenGui", {
-        Name = "NexusUI_LoadingScreen",
-        ResetOnSpawn = false,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        IgnoreGuiInset = true,
-        DisplayOrder = 999
-    })
-    
-    -- Parent
-    pcall(function()
-        if gethui then
-            self.ScreenGui.Parent = gethui()
-        elseif syn and syn.protect_gui then
-            syn.protect_gui(self.ScreenGui)
-            self.ScreenGui.Parent = Services.CoreGui
-        else
-            self.ScreenGui.Parent = Services.CoreGui
-        end
-    end)
-    
-    -- Blur effect
-    if BlurBackground then
-        self.Blur = Instance.new("BlurEffect")
-        self.Blur.Size = 0
-        self.Blur.Parent = Services.Lighting
-    end
-    
-    -- Background
-    self.Background = Creator.New("Frame", {
-        Size = UDim2.fromScale(1, 1),
-        BackgroundColor3 = BackgroundColor,
-        Parent = self.ScreenGui
-    })
-    
-    -- Background image overlay
-    if BackgroundImage then
-        self.BackgroundImage = Creator.New("ImageLabel", {
-            Size = UDim2.fromScale(1, 1),
-            Image = type(BackgroundImage) == "number" and ("rbxassetid://" .. BackgroundImage) or BackgroundImage,
-            ImageTransparency = 0.3,
-            ScaleType = Enum.ScaleType.Crop,
-            BackgroundTransparency = 1,
-            Parent = self.Background
-        })
-        
-        -- Animated gradient overlay
-        Creator.New("UIGradient", {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
-                ColorSequenceKeypoint.new(0.5, Color3.new(0.1, 0.1, 0.1)),
-                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
-            }),
-            Transparency = NumberSequence.new(0.5),
-            Rotation = 45,
-            Parent = self.BackgroundImage
-        })
-    end
-    
-    -- Particle effects
-    if Particles then
-        self:CreateParticles()
-    end
-    
-    -- Content container
-    self.Content = Creator.New("Frame", {
-        Size = UDim2.fromOffset(400, 350),
-        Position = UDim2.fromScale(0.5, 0.5),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 1,
-        Parent = self.Background
-    })
-    
-    -- Logo
-    if LogoImage then
-        self.Logo = Creator.New("ImageLabel", {
-            Size = UDim2.fromOffset(120, 120),
-            Position = UDim2.new(0.5, 0, 0, 0),
-            AnchorPoint = Vector2.new(0.5, 0),
-            Image = type(LogoImage) == "number" and ("rbxassetid://" .. LogoImage) or LogoImage,
-            BackgroundTransparency = 1,
-            Parent = self.Content
-        })
-        
-        -- Logo glow
-        self.LogoGlow = Creator.New("ImageLabel", {
-            Size = UDim2.fromOffset(180, 180),
-            Position = UDim2.fromScale(0.5, 0.5),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            Image = "rbxassetid://5028857084", -- Glow effect
-            ImageColor3 = AccentColor,
-            ImageTransparency = 0.7,
-            BackgroundTransparency = 1,
-            ZIndex = -1,
-            Parent = self.Logo
-        })
-        
-        -- Animate logo rotation
-        self:AnimateLogo()
-    end
-    
-    -- Title
-    self.TitleLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 40),
-        Position = UDim2.new(0, 0, 0, LogoImage and 140 or 80),
-        Text = Title,
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
-        TextSize = 32,
-        TextColor3 = Color3.new(1, 1, 1),
-        BackgroundTransparency = 1,
-        Parent = self.Content
-    })
-    
-    -- Subtitle with typewriter effect
-    self.SubtitleLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 24),
-        Position = UDim2.new(0, 0, 0, LogoImage and 185 or 125),
-        Text = "",
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        TextSize = 16,
-        TextColor3 = Color3.fromRGB(180, 180, 180),
-        BackgroundTransparency = 1,
-        Parent = self.Content
-    })
-    self:TypewriterEffect(Subtitle)
-    
-    -- Progress bar container
-    self.ProgressContainer = Creator.New("Frame", {
-        Size = UDim2.new(1, 0, 0, 6),
-        Position = UDim2.new(0, 0, 0, LogoImage and 240 or 180),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 45),
-        Parent = self.Content
-    }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
-    })
-    
-    -- Progress bar fill with gradient
-    self.ProgressFill = Creator.New("Frame", {
-        Size = UDim2.fromScale(0, 1),
-        BackgroundColor3 = AccentColor,
-        Parent = self.ProgressContainer
-    }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)}),
-        Creator.New("UIGradient", {
-            Color = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, AccentColor),
-                ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
-            }),
-            Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0),
-                NumberSequenceKeypoint.new(0.8, 0),
-                NumberSequenceKeypoint.new(1, 0.6)
-            })
-        })
-    })
-    
-    -- Animated shimmer on progress bar
-    self:CreateProgressShimmer()
-    
-    -- Progress percentage
-    self.ProgressText = Creator.New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = UDim2.new(0, 0, 0, LogoImage and 255 or 195),
-        Text = "0%",
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-        TextSize = 14,
-        TextColor3 = Color3.fromRGB(150, 150, 150),
-        BackgroundTransparency = 1,
-        Parent = self.Content
-    })
-    
-    -- Current task label
-    self.TaskLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 18),
-        Position = UDim2.new(0, 0, 0, LogoImage and 280 or 220),
-        Text = "",
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        TextSize = 13,
-        TextColor3 = Color3.fromRGB(120, 120, 120),
-        BackgroundTransparency = 1,
-        Parent = self.Content
-    })
-    
-    -- Tips section
-    if options.Tips and #options.Tips > 0 then
-        self:CreateTipsSection(options.Tips)
-    end
-    
-    -- Play music
-    if Music then
-        self:PlayMusic(Music, options.MusicVolume or 0.5)
-    end
-    
-    -- Animate entrance
-    self:AnimateIn()
-    
-    return self
-end
-
-function LoadingScreen:CreateParticles()
-    self.ParticleContainer = Creator.New("Frame", {
-        Size = UDim2.fromScale(1, 1),
-        BackgroundTransparency = 1,
-        ClipsDescendants = true,
-        Parent = self.Background
-    })
-    
-    -- Create floating particles
-    for i = 1, 30 do
-        task.spawn(function()
-            local particle = Creator.New("Frame", {
-                Size = UDim2.fromOffset(math.random(2, 6), math.random(2, 6)),
-                Position = UDim2.fromScale(math.random(), math.random()),
-                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                BackgroundTransparency = math.random(70, 90) / 100,
-                Parent = self.ParticleContainer
-            }, {
-                Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
-            })
-            
-            -- Animate particle
-            while particle.Parent do
-                local duration = math.random(8, 15)
-                local targetY = particle.Position.Y.Scale - 0.3
-                
-                Creator.Tween(particle, {
-                    Position = UDim2.fromScale(
-                        particle.Position.X.Scale + (math.random() - 0.5) * 0.1,
-                        targetY
-                    ),
-                    BackgroundTransparency = 1
-                }, duration)
-                
-                task.wait(duration)
-                
-                -- Reset particle
-                particle.Position = UDim2.fromScale(math.random(), 1.1)
-                particle.BackgroundTransparency = math.random(70, 90) / 100
-            end
-        end)
-    end
-end
-
-function LoadingScreen:CreateProgressShimmer()
-    local shimmer = Creator.New("Frame", {
-        Size = UDim2.new(0.3, 0, 1, 0),
-        Position = UDim2.fromScale(-0.3, 0),
-        BackgroundTransparency = 1,
-        Parent = self.ProgressFill
-    }, {
-        Creator.New("UIGradient", {
-            Color = ColorSequence.new(Color3.new(1, 1, 1)),
-            Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 1),
-                NumberSequenceKeypoint.new(0.5, 0.5),
-                NumberSequenceKeypoint.new(1, 1)
-            })
-        })
-    })
-    
-    -- Animate shimmer
-    task.spawn(function()
-        while shimmer.Parent do
-            shimmer.Position = UDim2.fromScale(-0.3, 0)
-            Creator.Tween(shimmer, {Position = UDim2.fromScale(1.3, 0)}, 1.5)
-            task.wait(2)
-        end
-    end)
-end
-
-function LoadingScreen:AnimateLogo()
-    if not self.Logo then return end
-    
-    task.spawn(function()
-        while self.Logo and self.Logo.Parent do
-            -- Gentle floating animation
-            Creator.Tween(self.Logo, {Position = UDim2.new(0.5, 0, 0, -5)}, 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            task.wait(2)
-            Creator.Tween(self.Logo, {Position = UDim2.new(0.5, 0, 0, 5)}, 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            task.wait(2)
-        end
-    end)
-    
-    -- Glow pulse
-    if self.LogoGlow then
-        task.spawn(function()
-            while self.LogoGlow and self.LogoGlow.Parent do
-                Creator.Tween(self.LogoGlow, {ImageTransparency = 0.5, Size = UDim2.fromOffset(200, 200)}, 1.5)
-                task.wait(1.5)
-                Creator.Tween(self.LogoGlow, {ImageTransparency = 0.8, Size = UDim2.fromOffset(170, 170)}, 1.5)
-                task.wait(1.5)
-            end
-        end)
-    end
-end
-
-function LoadingScreen:TypewriterEffect(text)
-    task.spawn(function()
-        for i = 1, #text do
-            if not self.SubtitleLabel or not self.SubtitleLabel.Parent then break end
-            self.SubtitleLabel.Text = string.sub(text, 1, i)
-            task.wait(0.03)
-        end
-    end)
-end
-
-function LoadingScreen:CreateTipsSection(tips)
-    self.TipsLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -40, 0, 40),
-        Position = UDim2.new(0.5, 0, 1, -60),
-        AnchorPoint = Vector2.new(0.5, 1),
-        Text = "💡 " .. tips[1],
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        TextSize = 14,
-        TextColor3 = Color3.fromRGB(140, 140, 150),
-        TextWrapped = true,
-        BackgroundTransparency = 1,
-        Parent = self.Background
-    })
-    
-    -- Rotate tips
-    if #tips > 1 then
-        task.spawn(function()
-            local index = 1
-            while self.TipsLabel and self.TipsLabel.Parent do
-                task.wait(5)
-                index = index % #tips + 1
-                Creator.Tween(self.TipsLabel, {TextTransparency = 1}, 0.3)
-                task.wait(0.3)
-                self.TipsLabel.Text = "💡 " .. tips[index]
-                Creator.Tween(self.TipsLabel, {TextTransparency = 0}, 0.3)
-            end
-        end)
-    end
-end
-
-function LoadingScreen:PlayMusic(musicId, volume)
-    self.Music = Instance.new("Sound")
-    self.Music.SoundId = type(musicId) == "number" and ("rbxassetid://" .. musicId) or musicId
-    self.Music.Volume = 0
-    self.Music.Looped = true
-    self.Music.Parent = Services.SoundService
-    self.Music:Play()
-    
-    -- Fade in
-    Creator.Tween(self.Music, {Volume = volume}, 2)
-end
-
-function LoadingScreen:AnimateIn()
-    self.Background.BackgroundTransparency = 1
-    self.Content.Position = UDim2.new(0.5, 0, 0.6, 0)
-    
-    Creator.Tween(self.Background, {BackgroundTransparency = 0}, 0.5)
-    Creator.Tween(self.Content, {Position = UDim2.fromScale(0.5, 0.5)}, 0.8, Enum.EasingStyle.Back)
-    
-    if self.Blur then
-        Creator.Tween(self.Blur, {Size = 20}, 0.5)
-    end
-end
-
-function LoadingScreen:SetProgress(progress, taskName)
-    progress = math.clamp(progress, 0, 100)
-    self.Progress = progress
-    
-    Creator.Tween(self.ProgressFill, {Size = UDim2.fromScale(progress / 100, 1)}, 0.3)
-    self.ProgressText.Text = math.floor(progress) .. "%"
-    
-    if taskName then
-        self.CurrentTask = taskName
-        self.TaskLabel.Text = taskName
-    end
-end
-
-function LoadingScreen:AddTask(name)
-    table.insert(self.Tasks, {name = name, completed = false})
-    return #self.Tasks
-end
-
-function LoadingScreen:CompleteTask(index)
-    if self.Tasks[index] then
-        self.Tasks[index].completed = true
-    end
-    
-    local completed = 0
-    for _, task in ipairs(self.Tasks) do
-        if task.completed then completed = completed + 1 end
-    end
-    
-    self:SetProgress((completed / #self.Tasks) * 100)
-end
-
-function LoadingScreen:Finish(callback)
-    self.Completed = true
-    self:SetProgress(100, "Complete!")
-    
-    task.delay(0.5, function()
-        -- Fade out music
-        if self.Music then
-            Creator.Tween(self.Music, {Volume = 0}, 1)
-        end
-        
-        -- Fade out blur
-        if self.Blur then
-            Creator.Tween(self.Blur, {Size = 0}, 0.5)
-        end
-        
-        -- Animate out
-        Creator.Tween(self.Content, {
-            Position = UDim2.new(0.5, 0, 0.4, 0)
-        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        
-        Creator.Tween(self.Background, {BackgroundTransparency = 1}, 0.8, nil, nil, function()
-            if self.Music then self.Music:Destroy() end
-            if self.Blur then self.Blur:Destroy() end
-            self.ScreenGui:Destroy()
-            
-            if callback then callback() end
-        end)
-    end)
-end
-
-return LoadingScreen
-
-end
-
 -- Module: Components/Notification
 _modules["Components/Notification"] = function()
     local script = {Parent = {Parent = {}}}
@@ -5129,7 +4662,7 @@ end
 
 -- Add section
 function Tab:AddSection(title)
-    local Section = _require("Parent/Section")
+    local Section = _require("Components/Section")
     return Section.new(self, title)
 end
 
@@ -5643,7 +5176,7 @@ function Window:CreateControlButton(name, position, icon, callback)
 end
 
 function Window:AddTab(options)
-    local Tab = _require("Parent/Tab")
+    local Tab = _require("Components/Tab")
     return Tab.new(self, options)
 end
 
@@ -5700,16 +5233,483 @@ function Window:Destroy()
 end
 
 function Window:Notify(options)
-    local Notification = _require("Parent/Notification")
+    local Notification = _require("Components/Notification")
     return Notification.new(self.ScreenGui, options)
 end
 
 function Window:Dialog(options)
-    local Dialog = _require("Parent/Dialog")
+    local Dialog = _require("Components/Dialog")
     return Dialog.new(self, options)
 end
 
 return Window
+
+end
+
+-- Module: Components/LoadingScreen
+_modules["Components/LoadingScreen"] = function()
+    local script = {Parent = {Parent = {}}}
+
+--[[
+    NexusUI Loading Screen Component
+    Beautiful animated loading screen with progress, custom images, music, and effects
+]]
+
+local LoadingScreen = {}
+LoadingScreen.__index = LoadingScreen
+
+local Creator, Flipper, Services
+
+local function InitDependencies()
+    local root = script.Parent.Parent
+    Creator = _require("Core/Creator")
+    Flipper = _require("Packages/Flipper")
+    Services = _require("Core/Services")
+end
+
+function LoadingScreen.new(options)
+    InitDependencies()
+    
+    options = options or {}
+    local Title = options.Title or "Loading..."
+    local Subtitle = options.Subtitle or "Please wait"
+    local LogoImage = options.Logo -- Custom logo image
+    local BackgroundImage = options.Background -- Custom background
+    local BackgroundColor = options.BackgroundColor or Color3.fromRGB(15, 15, 18)
+    local AccentColor = options.AccentColor or Color3.fromRGB(100, 150, 255)
+    local Music = options.Music -- Background music ID
+    local LoadingStyle = options.Style or "Modern" -- Modern, Minimal, Gaming, Cinematic
+    local BlurBackground = options.Blur ~= false
+    local Particles = options.Particles ~= false
+    
+    local self = setmetatable({}, LoadingScreen)
+    self.Progress = 0
+    self.Tasks = {}
+    self.CurrentTask = ""
+    self.Completed = false
+    
+    -- Create ScreenGui
+    self.ScreenGui = Creator.New("ScreenGui", {
+        Name = "NexusUI_LoadingScreen",
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        IgnoreGuiInset = true,
+        DisplayOrder = 999
+    })
+    
+    -- Parent
+    pcall(function()
+        if gethui then
+            self.ScreenGui.Parent = gethui()
+        elseif syn and syn.protect_gui then
+            syn.protect_gui(self.ScreenGui)
+            self.ScreenGui.Parent = Services.CoreGui
+        else
+            self.ScreenGui.Parent = Services.CoreGui
+        end
+    end)
+    
+    -- Blur effect
+    if BlurBackground then
+        self.Blur = Instance.new("BlurEffect")
+        self.Blur.Size = 0
+        self.Blur.Parent = Services.Lighting
+    end
+    
+    -- Background
+    self.Background = Creator.New("Frame", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundColor3 = BackgroundColor,
+        Parent = self.ScreenGui
+    })
+    
+    -- Background image overlay
+    if BackgroundImage then
+        self.BackgroundImage = Creator.New("ImageLabel", {
+            Size = UDim2.fromScale(1, 1),
+            Image = type(BackgroundImage) == "number" and ("rbxassetid://" .. BackgroundImage) or BackgroundImage,
+            ImageTransparency = 0.3,
+            ScaleType = Enum.ScaleType.Crop,
+            BackgroundTransparency = 1,
+            Parent = self.Background
+        })
+        
+        -- Animated gradient overlay
+        Creator.New("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
+                ColorSequenceKeypoint.new(0.5, Color3.new(0.1, 0.1, 0.1)),
+                ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
+            }),
+            Transparency = NumberSequence.new(0.5),
+            Rotation = 45,
+            Parent = self.BackgroundImage
+        })
+    end
+    
+    -- Particle effects
+    if Particles then
+        self:CreateParticles()
+    end
+    
+    -- Content container
+    self.Content = Creator.New("Frame", {
+        Size = UDim2.fromOffset(400, 350),
+        Position = UDim2.fromScale(0.5, 0.5),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 1,
+        Parent = self.Background
+    })
+    
+    -- Logo
+    if LogoImage then
+        self.Logo = Creator.New("ImageLabel", {
+            Size = UDim2.fromOffset(120, 120),
+            Position = UDim2.new(0.5, 0, 0, 0),
+            AnchorPoint = Vector2.new(0.5, 0),
+            Image = type(LogoImage) == "number" and ("rbxassetid://" .. LogoImage) or LogoImage,
+            BackgroundTransparency = 1,
+            Parent = self.Content
+        })
+        
+        -- Logo glow
+        self.LogoGlow = Creator.New("ImageLabel", {
+            Size = UDim2.fromOffset(180, 180),
+            Position = UDim2.fromScale(0.5, 0.5),
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            Image = "rbxassetid://5028857084", -- Glow effect
+            ImageColor3 = AccentColor,
+            ImageTransparency = 0.7,
+            BackgroundTransparency = 1,
+            ZIndex = -1,
+            Parent = self.Logo
+        })
+        
+        -- Animate logo rotation
+        self:AnimateLogo()
+    end
+    
+    -- Title
+    self.TitleLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 40),
+        Position = UDim2.new(0, 0, 0, LogoImage and 140 or 80),
+        Text = Title,
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+        TextSize = 32,
+        TextColor3 = Color3.new(1, 1, 1),
+        BackgroundTransparency = 1,
+        Parent = self.Content
+    })
+    
+    -- Subtitle with typewriter effect
+    self.SubtitleLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 24),
+        Position = UDim2.new(0, 0, 0, LogoImage and 185 or 125),
+        Text = "",
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 16,
+        TextColor3 = Color3.fromRGB(180, 180, 180),
+        BackgroundTransparency = 1,
+        Parent = self.Content
+    })
+    self:TypewriterEffect(Subtitle)
+    
+    -- Progress bar container
+    self.ProgressContainer = Creator.New("Frame", {
+        Size = UDim2.new(1, 0, 0, 6),
+        Position = UDim2.new(0, 0, 0, LogoImage and 240 or 180),
+        BackgroundColor3 = Color3.fromRGB(40, 40, 45),
+        Parent = self.Content
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
+    })
+    
+    -- Progress bar fill with gradient
+    self.ProgressFill = Creator.New("Frame", {
+        Size = UDim2.fromScale(0, 1),
+        BackgroundColor3 = AccentColor,
+        Parent = self.ProgressContainer
+    }, {
+        Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)}),
+        Creator.New("UIGradient", {
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, AccentColor),
+                ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+            }),
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0),
+                NumberSequenceKeypoint.new(0.8, 0),
+                NumberSequenceKeypoint.new(1, 0.6)
+            })
+        })
+    })
+    
+    -- Animated shimmer on progress bar
+    self:CreateProgressShimmer()
+    
+    -- Progress percentage
+    self.ProgressText = Creator.New("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.new(0, 0, 0, LogoImage and 255 or 195),
+        Text = "0%",
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+        TextSize = 14,
+        TextColor3 = Color3.fromRGB(150, 150, 150),
+        BackgroundTransparency = 1,
+        Parent = self.Content
+    })
+    
+    -- Current task label
+    self.TaskLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 18),
+        Position = UDim2.new(0, 0, 0, LogoImage and 280 or 220),
+        Text = "",
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 13,
+        TextColor3 = Color3.fromRGB(120, 120, 120),
+        BackgroundTransparency = 1,
+        Parent = self.Content
+    })
+    
+    -- Tips section
+    if options.Tips and #options.Tips > 0 then
+        self:CreateTipsSection(options.Tips)
+    end
+    
+    -- Play music
+    if Music then
+        self:PlayMusic(Music, options.MusicVolume or 0.5)
+    end
+    
+    -- Animate entrance
+    self:AnimateIn()
+    
+    return self
+end
+
+function LoadingScreen:CreateParticles()
+    self.ParticleContainer = Creator.New("Frame", {
+        Size = UDim2.fromScale(1, 1),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+        Parent = self.Background
+    })
+    
+    -- Create floating particles
+    for i = 1, 30 do
+        task.spawn(function()
+            local particle = Creator.New("Frame", {
+                Size = UDim2.fromOffset(math.random(2, 6), math.random(2, 6)),
+                Position = UDim2.fromScale(math.random(), math.random()),
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                BackgroundTransparency = math.random(70, 90) / 100,
+                Parent = self.ParticleContainer
+            }, {
+                Creator.New("UICorner", {CornerRadius = UDim.new(1, 0)})
+            })
+            
+            -- Animate particle
+            while particle.Parent do
+                local duration = math.random(8, 15)
+                local targetY = particle.Position.Y.Scale - 0.3
+                
+                Creator.Tween(particle, {
+                    Position = UDim2.fromScale(
+                        particle.Position.X.Scale + (math.random() - 0.5) * 0.1,
+                        targetY
+                    ),
+                    BackgroundTransparency = 1
+                }, duration)
+                
+                task.wait(duration)
+                
+                -- Reset particle
+                particle.Position = UDim2.fromScale(math.random(), 1.1)
+                particle.BackgroundTransparency = math.random(70, 90) / 100
+            end
+        end)
+    end
+end
+
+function LoadingScreen:CreateProgressShimmer()
+    local shimmer = Creator.New("Frame", {
+        Size = UDim2.new(0.3, 0, 1, 0),
+        Position = UDim2.fromScale(-0.3, 0),
+        BackgroundTransparency = 1,
+        Parent = self.ProgressFill
+    }, {
+        Creator.New("UIGradient", {
+            Color = ColorSequence.new(Color3.new(1, 1, 1)),
+            Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(0.5, 0.5),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+        })
+    })
+    
+    -- Animate shimmer
+    task.spawn(function()
+        while shimmer.Parent do
+            shimmer.Position = UDim2.fromScale(-0.3, 0)
+            Creator.Tween(shimmer, {Position = UDim2.fromScale(1.3, 0)}, 1.5)
+            task.wait(2)
+        end
+    end)
+end
+
+function LoadingScreen:AnimateLogo()
+    if not self.Logo then return end
+    
+    task.spawn(function()
+        while self.Logo and self.Logo.Parent do
+            -- Gentle floating animation
+            Creator.Tween(self.Logo, {Position = UDim2.new(0.5, 0, 0, -5)}, 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            task.wait(2)
+            Creator.Tween(self.Logo, {Position = UDim2.new(0.5, 0, 0, 5)}, 2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            task.wait(2)
+        end
+    end)
+    
+    -- Glow pulse
+    if self.LogoGlow then
+        task.spawn(function()
+            while self.LogoGlow and self.LogoGlow.Parent do
+                Creator.Tween(self.LogoGlow, {ImageTransparency = 0.5, Size = UDim2.fromOffset(200, 200)}, 1.5)
+                task.wait(1.5)
+                Creator.Tween(self.LogoGlow, {ImageTransparency = 0.8, Size = UDim2.fromOffset(170, 170)}, 1.5)
+                task.wait(1.5)
+            end
+        end)
+    end
+end
+
+function LoadingScreen:TypewriterEffect(text)
+    task.spawn(function()
+        for i = 1, #text do
+            if not self.SubtitleLabel or not self.SubtitleLabel.Parent then break end
+            self.SubtitleLabel.Text = string.sub(text, 1, i)
+            task.wait(0.03)
+        end
+    end)
+end
+
+function LoadingScreen:CreateTipsSection(tips)
+    self.TipsLabel = Creator.New("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 40),
+        Position = UDim2.new(0.5, 0, 1, -60),
+        AnchorPoint = Vector2.new(0.5, 1),
+        Text = "💡 " .. tips[1],
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+        TextSize = 14,
+        TextColor3 = Color3.fromRGB(140, 140, 150),
+        TextWrapped = true,
+        BackgroundTransparency = 1,
+        Parent = self.Background
+    })
+    
+    -- Rotate tips
+    if #tips > 1 then
+        task.spawn(function()
+            local index = 1
+            while self.TipsLabel and self.TipsLabel.Parent do
+                task.wait(5)
+                index = index % #tips + 1
+                Creator.Tween(self.TipsLabel, {TextTransparency = 1}, 0.3)
+                task.wait(0.3)
+                self.TipsLabel.Text = "💡 " .. tips[index]
+                Creator.Tween(self.TipsLabel, {TextTransparency = 0}, 0.3)
+            end
+        end)
+    end
+end
+
+function LoadingScreen:PlayMusic(musicId, volume)
+    self.Music = Instance.new("Sound")
+    self.Music.SoundId = type(musicId) == "number" and ("rbxassetid://" .. musicId) or musicId
+    self.Music.Volume = 0
+    self.Music.Looped = true
+    self.Music.Parent = Services.SoundService
+    self.Music:Play()
+    
+    -- Fade in
+    Creator.Tween(self.Music, {Volume = volume}, 2)
+end
+
+function LoadingScreen:AnimateIn()
+    self.Background.BackgroundTransparency = 1
+    self.Content.Position = UDim2.new(0.5, 0, 0.6, 0)
+    
+    Creator.Tween(self.Background, {BackgroundTransparency = 0}, 0.5)
+    Creator.Tween(self.Content, {Position = UDim2.fromScale(0.5, 0.5)}, 0.8, Enum.EasingStyle.Back)
+    
+    if self.Blur then
+        Creator.Tween(self.Blur, {Size = 20}, 0.5)
+    end
+end
+
+function LoadingScreen:SetProgress(progress, taskName)
+    progress = math.clamp(progress, 0, 100)
+    self.Progress = progress
+    
+    Creator.Tween(self.ProgressFill, {Size = UDim2.fromScale(progress / 100, 1)}, 0.3)
+    self.ProgressText.Text = math.floor(progress) .. "%"
+    
+    if taskName then
+        self.CurrentTask = taskName
+        self.TaskLabel.Text = taskName
+    end
+end
+
+function LoadingScreen:AddTask(name)
+    table.insert(self.Tasks, {name = name, completed = false})
+    return #self.Tasks
+end
+
+function LoadingScreen:CompleteTask(index)
+    if self.Tasks[index] then
+        self.Tasks[index].completed = true
+    end
+    
+    local completed = 0
+    for _, task in ipairs(self.Tasks) do
+        if task.completed then completed = completed + 1 end
+    end
+    
+    self:SetProgress((completed / #self.Tasks) * 100)
+end
+
+function LoadingScreen:Finish(callback)
+    self.Completed = true
+    self:SetProgress(100, "Complete!")
+    
+    task.delay(0.5, function()
+        -- Fade out music
+        if self.Music then
+            Creator.Tween(self.Music, {Volume = 0}, 1)
+        end
+        
+        -- Fade out blur
+        if self.Blur then
+            Creator.Tween(self.Blur, {Size = 0}, 0.5)
+        end
+        
+        -- Animate out
+        Creator.Tween(self.Content, {
+            Position = UDim2.new(0.5, 0, 0.4, 0)
+        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        
+        Creator.Tween(self.Background, {BackgroundTransparency = 1}, 0.8, nil, nil, function()
+            if self.Music then self.Music:Destroy() end
+            if self.Blur then self.Blur:Destroy() end
+            self.ScreenGui:Destroy()
+            
+            if callback then callback() end
+        end)
+    end)
+end
+
+return LoadingScreen
 
 end
 
