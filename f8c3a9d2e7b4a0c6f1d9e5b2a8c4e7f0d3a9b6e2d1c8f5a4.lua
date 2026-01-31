@@ -2880,8 +2880,8 @@ return Customizer
 
 end
 
--- Module: Core/builder
-_modules["Core/builder"] = function()
+-- Module: Core/Builder
+_modules["Core/Builder"] = function()
     local script = {Parent = {Parent = {}}}
 
 --[[
@@ -3473,6 +3473,515 @@ return ConfigManager
 
 end
 
+-- Module: Utils/ConfigStore
+_modules["Utils/ConfigStore"] = function()
+    local script = {Parent = {Parent = {}}}
+
+--[[
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                      NEXUS UI LIBRARY                         ║
+    ║                       GUI Framework                           ║
+    ║                          By Ryu                               ║
+    ║               CONFIG STORE v1.0 (.skid)                       ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    
+    Custom config storage system for saving GUI settings
+    File extension: .skid
+    
+    Usage:
+        local ConfigStore = NexusUI.ConfigStore
+        ConfigStore:CreateConfig("MyScript", {Theme = "Dark", Volume = 50})
+        ConfigStore:Save()
+        ConfigStore:Load()
+        ConfigStore:Set("Volume", 75)
+        local vol = ConfigStore:Get("Volume")
+]]
+
+local ConfigStore = {}
+ConfigStore.__index = ConfigStore
+
+local HttpService = game:GetService("HttpService")
+
+-- Default folder for configs
+ConfigStore.DefaultFolder = "NexusUI_Configs"
+ConfigStore.Extension = ".skid"
+
+-- Active configs registry
+ConfigStore.Configs = {}
+ConfigStore.ActiveConfig = nil
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CONFIG CLASS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+local Config = {}
+Config.__index = Config
+
+function Config.new(name, defaults, folder)
+    local self = setmetatable({}, Config)
+    
+    self.Name = name
+    self.Folder = folder or ConfigStore.DefaultFolder
+    self.FilePath = self.Folder .. "/" .. name .. ConfigStore.Extension
+    self.Defaults = defaults or {}
+    self.Data = {}
+    self.AutoSave = true
+    self.SaveDebounce = false
+    self.LastSaved = 0
+    self.Callbacks = {}  -- Change listeners
+    
+    -- Deep copy defaults
+    for key, value in pairs(self.Defaults) do
+        if type(value) == "table" then
+            self.Data[key] = self:DeepCopy(value)
+        else
+            self.Data[key] = value
+        end
+    end
+    
+    return self
+end
+
+function Config:DeepCopy(original)
+    local copy = {}
+    for key, value in pairs(original) do
+        if type(value) == "table" then
+            copy[key] = self:DeepCopy(value)
+        else
+            copy[key] = value
+        end
+    end
+    return copy
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- GETTERS & SETTERS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Config:Get(key, default)
+    if self.Data[key] ~= nil then
+        return self.Data[key]
+    end
+    return default or self.Defaults[key]
+end
+
+function Config:Set(key, value)
+    local oldValue = self.Data[key]
+    self.Data[key] = value
+    
+    -- Fire callbacks
+    if self.Callbacks[key] then
+        for _, callback in ipairs(self.Callbacks[key]) do
+            task.spawn(callback, value, oldValue)
+        end
+    end
+    
+    -- Auto-save with debounce
+    if self.AutoSave and not self.SaveDebounce then
+        self.SaveDebounce = true
+        task.delay(1, function()
+            self.SaveDebounce = false
+            self:Save()
+        end)
+    end
+    
+    return self
+end
+
+function Config:SetMultiple(data)
+    for key, value in pairs(data) do
+        self:Set(key, value)
+    end
+    return self
+end
+
+function Config:GetAll()
+    return self.Data
+end
+
+function Config:Reset(key)
+    if key then
+        self.Data[key] = self.Defaults[key]
+    else
+        -- Reset all
+        self.Data = {}
+        for k, v in pairs(self.Defaults) do
+            if type(v) == "table" then
+                self.Data[k] = self:DeepCopy(v)
+            else
+                self.Data[k] = v
+            end
+        end
+    end
+    
+    if self.AutoSave then
+        self:Save()
+    end
+    
+    return self
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CHANGE LISTENERS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Config:OnChange(key, callback)
+    if not self.Callbacks[key] then
+        self.Callbacks[key] = {}
+    end
+    table.insert(self.Callbacks[key], callback)
+    return self
+end
+
+function Config:OffChange(key, callback)
+    if self.Callbacks[key] then
+        for i, cb in ipairs(self.Callbacks[key]) do
+            if cb == callback then
+                table.remove(self.Callbacks[key], i)
+                break
+            end
+        end
+    end
+    return self
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- FILE I/O
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function Config:Save()
+    if not writefile then
+        warn("[ConfigStore] writefile not available")
+        return false
+    end
+    
+    local success, err = pcall(function()
+        -- Ensure folder exists
+        if not isfolder(self.Folder) then
+            makefolder(self.Folder)
+        end
+        
+        -- Build .skid format
+        local content = self:Serialize()
+        writefile(self.FilePath, content)
+        self.LastSaved = os.time()
+    end)
+    
+    if not success then
+        warn("[ConfigStore] Save failed:", err)
+    end
+    
+    return success
+end
+
+function Config:Load()
+    if not readfile or not isfile then
+        warn("[ConfigStore] readfile not available")
+        return false
+    end
+    
+    if not isfile(self.FilePath) then
+        -- No saved config, use defaults
+        return false
+    end
+    
+    local success, err = pcall(function()
+        local content = readfile(self.FilePath)
+        local data = self:Deserialize(content)
+        
+        -- Merge with defaults (keep new defaults if config doesn't have them)
+        for key, value in pairs(self.Defaults) do
+            if data[key] == nil then
+                data[key] = value
+            end
+        end
+        
+        self.Data = data
+    end)
+    
+    if not success then
+        warn("[ConfigStore] Load failed:", err)
+        return false
+    end
+    
+    return true
+end
+
+function Config:Delete()
+    if delfile and isfile(self.FilePath) then
+        delfile(self.FilePath)
+        return true
+    end
+    return false
+end
+
+function Config:Exists()
+    return isfile and isfile(self.FilePath) or false
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- SERIALIZATION 
+-- ════════════════════════════════════════════════════════════════════════════════
+
+--[[
+    .skid format is a custom readable format:
+    
+    # NexusUI Config File
+    # Created: 2026-01-31
+    # Script: MyScript
+    
+    [Settings]
+    Theme = "Dark"
+    Volume = 50
+    Enabled = true
+    
+    [Keybinds]
+    Toggle = "RightControl"
+    Kill = "K"
+]]
+
+function Config:Serialize()
+    local lines = {}
+    
+    -- Header
+    table.insert(lines, "# ═══════════════════════════════════════")
+    table.insert(lines, "# NexusUI Config File (.skid)")
+    table.insert(lines, "# Script: " .. self.Name)
+    table.insert(lines, string.format("# Created: %s", os.date("%Y-%m-%d %H:%M:%S")))
+    table.insert(lines, "# ═══════════════════════════════════════")
+    table.insert(lines, "")
+    
+    -- Separate nested tables and flat values
+    local flatData = {}
+    local nestedData = {}
+    
+    for key, value in pairs(self.Data) do
+        if type(value) == "table" then
+            nestedData[key] = value
+        else
+            flatData[key] = value
+        end
+    end
+    
+    -- Main section
+    if next(flatData) then
+        table.insert(lines, "[Main]")
+        for key, value in pairs(flatData) do
+            table.insert(lines, self:SerializeValue(key, value))
+        end
+        table.insert(lines, "")
+    end
+    
+    -- Nested sections
+    for sectionName, sectionData in pairs(nestedData) do
+        table.insert(lines, "[" .. sectionName .. "]")
+        for key, value in pairs(sectionData) do
+            table.insert(lines, self:SerializeValue(key, value))
+        end
+        table.insert(lines, "")
+    end
+    
+    return table.concat(lines, "\n")
+end
+
+function Config:SerializeValue(key, value)
+    local valueType = type(value)
+    
+    if valueType == "string" then
+        return string.format('%s = "%s"', key, value:gsub('"', '\\"'))
+    elseif valueType == "number" then
+        return string.format('%s = %s', key, tostring(value))
+    elseif valueType == "boolean" then
+        return string.format('%s = %s', key, tostring(value))
+    elseif valueType == "table" then
+        -- Inline array for simple tables
+        local json = HttpService:JSONEncode(value)
+        return string.format('%s = %s', key, json)
+    else
+        return string.format('%s = "%s"', key, tostring(value))
+    end
+end
+
+function Config:Deserialize(content)
+    local data = {}
+    local currentSection = "Main"
+    
+    for line in content:gmatch("[^\n]+") do
+        line = line:match("^%s*(.-)%s*$")  -- Trim
+        
+        -- Skip comments and empty lines
+        if line == "" or line:sub(1, 1) == "#" then
+            -- Skip
+        elseif line:match("^%[(.+)%]$") then
+            -- Section header
+            currentSection = line:match("^%[(.+)%]$")
+            if currentSection ~= "Main" then
+                data[currentSection] = data[currentSection] or {}
+            end
+        else
+            -- Key = Value
+            local key, value = line:match("^([%w_]+)%s*=%s*(.+)$")
+            if key and value then
+                local parsedValue = self:ParseValue(value)
+                
+                if currentSection == "Main" then
+                    data[key] = parsedValue
+                else
+                    data[currentSection][key] = parsedValue
+                end
+            end
+        end
+    end
+    
+    return data
+end
+
+function Config:ParseValue(valueStr)
+    -- Remove quotes for strings
+    if valueStr:match('^"(.-)"$') then
+        return valueStr:match('^"(.-)"$'):gsub('\\"', '"')
+    end
+    
+    -- Boolean
+    if valueStr == "true" then return true end
+    if valueStr == "false" then return false end
+    
+    -- Number
+    local num = tonumber(valueStr)
+    if num then return num end
+    
+    -- JSON array/object
+    if valueStr:sub(1, 1) == "{" or valueStr:sub(1, 1) == "[" then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(valueStr)
+        end)
+        if success then return result end
+    end
+    
+    -- Default to string
+    return valueStr
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CONFIG STORE MAIN METHODS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function ConfigStore:CreateConfig(name, defaults, options)
+    options = options or {}
+    
+    local config = Config.new(name, defaults, options.Folder)
+    config.AutoSave = options.AutoSave ~= false
+    
+    -- Try to load existing
+    config:Load()
+    
+    -- Register
+    self.Configs[name] = config
+    self.ActiveConfig = config
+    
+    return config
+end
+
+function ConfigStore:GetConfig(name)
+    return self.Configs[name]
+end
+
+function ConfigStore:SetActiveConfig(name)
+    local config = self.Configs[name]
+    if config then
+        self.ActiveConfig = config
+    end
+    return config
+end
+
+-- Shorthand methods using active config
+function ConfigStore:Get(key, default)
+    if self.ActiveConfig then
+        return self.ActiveConfig:Get(key, default)
+    end
+    return default
+end
+
+function ConfigStore:Set(key, value)
+    if self.ActiveConfig then
+        self.ActiveConfig:Set(key, value)
+    end
+    return self
+end
+
+function ConfigStore:Save()
+    if self.ActiveConfig then
+        return self.ActiveConfig:Save()
+    end
+    return false
+end
+
+function ConfigStore:Load()
+    if self.ActiveConfig then
+        return self.ActiveConfig:Load()
+    end
+    return false
+end
+
+function ConfigStore:Reset(key)
+    if self.ActiveConfig then
+        self.ActiveConfig:Reset(key)
+    end
+    return self
+end
+
+function ConfigStore:OnChange(key, callback)
+    if self.ActiveConfig then
+        self.ActiveConfig:OnChange(key, callback)
+    end
+    return self
+end
+
+-- List all saved configs
+function ConfigStore:ListSavedConfigs(folder)
+    folder = folder or self.DefaultFolder
+    local configs = {}
+    
+    if listfiles and isfolder(folder) then
+        for _, file in ipairs(listfiles(folder)) do
+            if file:match(self.Extension .. "$") then
+                local name = file:match("([^/\\]+)" .. self.Extension .. "$")
+                table.insert(configs, name)
+            end
+        end
+    end
+    
+    return configs
+end
+
+-- Import config from JSON
+function ConfigStore:ImportFromJSON(name, jsonString)
+    local success, data = pcall(function()
+        return HttpService:JSONDecode(jsonString)
+    end)
+    
+    if success and data then
+        local config = self:CreateConfig(name, data)
+        config:Save()
+        return config
+    end
+    
+    return nil
+end
+
+-- Export config to JSON
+function ConfigStore:ExportToJSON(name)
+    local config = self.Configs[name]
+    if config then
+        return HttpService:JSONEncode(config.Data)
+    end
+    return nil
+end
+
+return ConfigStore
+
+end
+
 -- Module: Utils/AssetManager
 _modules["Utils/AssetManager"] = function()
     local script = {Parent = {Parent = {}}}
@@ -3671,262 +4180,607 @@ _modules["Utils/SoundManager"] = function()
 --[[
     ╔═══════════════════════════════════════════════════════════════╗
     ║                      NEXUS UI LIBRARY                         ║
-    ║                     Sound Manager Utility                     ║
+    ║                       GUI Framework                           ║
     ║                          By Ryu                               ║
+    ║             SOUND PLAYER v2.0 (Complete Rewrite)              ║
     ╚═══════════════════════════════════════════════════════════════╝
     
+    Advanced Sound Management System
+    
     Features:
-    - Play sound effects with presets
-    - Background music with fade in/out
-    - Global volume control
-    - Enable/Disable all sounds toggle
+    - Global/Music/SFX volume controls
+    - Sound effects with presets
+    - Music playback with crossfade
+    - Sound categories and pools
+    - Positional audio support
+    - Audio visualization data
+    - Playlist management
+    
+    Usage:
+        local Sound = NexusUI.Sound
+        
+        -- Quick play
+        Sound:PlayPreset("Click")
+        Sound:PlayMusic("rbxassetid://123456")
+        
+        -- Custom sound
+        Sound:Play({
+            Id = "rbxassetid://123456",
+            Volume = 0.5,
+            Pitch = 1.2,
+            Loop = true
+        })
+        
+        -- Volume control
+        Sound:SetVolume(75)          -- Global 0-100
+        Sound:SetMusicVolume(50)     -- Music 0-100
+        Sound:SetSFXVolume(80)       -- Effects 0-100
 ]]
 
-local SoundManager = {}
-SoundManager.Sounds = {}
-SoundManager.CurrentMusic = nil
+local SoundPlayer = {}
+SoundPlayer.__index = SoundPlayer
 
--- Global settings
-SoundManager.GlobalVolume = 1.0      -- 0.0 to 1.0
-SoundManager.SoundsEnabled = true    -- Master switch
-SoundManager.MusicVolume = 1.0       -- Music-specific volume
-SoundManager.SFXVolume = 1.0         -- Sound effects volume
+-- Services
+local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
-local Services
-local function InitDependencies()
-    local root = script.Parent.Parent
-    Services = _require("Core/Services")
+-- ════════════════════════════════════════════════════════════════════════════════
+-- STATE
+-- ════════════════════════════════════════════════════════════════════════════════
+
+SoundPlayer.Enabled = true
+SoundPlayer.GlobalVolume = 1.0       -- 0-1
+SoundPlayer.MusicVolume = 0.7        -- 0-1
+SoundPlayer.SFXVolume = 1.0          -- 0-1
+
+SoundPlayer.Sounds = {}              -- Active sound instances
+SoundPlayer.CurrentMusic = nil       -- Current music track
+SoundPlayer.NextMusic = nil          -- For crossfade
+SoundPlayer.Playlist = {}            -- Music playlist
+SoundPlayer.PlaylistIndex = 0
+SoundPlayer.ShuffleMode = false
+SoundPlayer.RepeatMode = "none"      -- none, one, all
+
+-- Sound container
+SoundPlayer.Container = nil
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- PRESETS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+SoundPlayer.Presets = {
+    -- UI Sounds
+    Click       = {Id = 6895079853, Volume = 0.4, Pitch = 1.0},
+    Hover       = {Id = 6895079709, Volume = 0.25, Pitch = 1.1},
+    Toggle      = {Id = 6895079946, Volume = 0.35, Pitch = 1.0},
+    Success     = {Id = 6895079946, Volume = 0.5, Pitch = 1.2},
+    Error       = {Id = 6895080346, Volume = 0.5, Pitch = 0.9},
+    Warning     = {Id = 6895080346, Volume = 0.4, Pitch = 1.0},
+    
+    -- Notifications
+    Notify      = {Id = 6895079569, Volume = 0.45, Pitch = 1.0},
+    Popup       = {Id = 4590657391, Volume = 0.4, Pitch = 1.0},
+    Message     = {Id = 6895079569, Volume = 0.35, Pitch = 1.1},
+    
+    -- Actions
+    Open        = {Id = 6895079853, Volume = 0.3, Pitch = 1.1},
+    Close       = {Id = 6895079853, Volume = 0.3, Pitch = 0.9},
+    Confirm     = {Id = 6895079946, Volume = 0.5, Pitch = 1.1},
+    Cancel      = {Id = 6895080346, Volume = 0.4, Pitch = 0.85},
+    
+    -- Typing
+    Type        = {Id = 5765439036, Volume = 0.2, Pitch = 1.0},
+    Backspace   = {Id = 5765439036, Volume = 0.15, Pitch = 0.85},
+    
+    -- Slider
+    Slide       = {Id = 6895079709, Volume = 0.2, Pitch = 1.2},
+    SlideEnd    = {Id = 6895079853, Volume = 0.25, Pitch = 1.0},
+    
+    -- Dropdown
+    Expand      = {Id = 6895079853, Volume = 0.25, Pitch = 1.15},
+    Collapse    = {Id = 6895079853, Volume = 0.25, Pitch = 0.95},
+    Select      = {Id = 6895079946, Volume = 0.3, Pitch = 1.05}
+}
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- INITIALIZATION
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:Init()
+    if self.Container then return end
+    
+    -- Create container for sounds
+    self.Container = Instance.new("Folder")
+    self.Container.Name = "NexusUI_Sounds"
+    self.Container.Parent = SoundService
+    
+    -- Music subfolder
+    self.MusicFolder = Instance.new("Folder")
+    self.MusicFolder.Name = "Music"
+    self.MusicFolder.Parent = self.Container
+    
+    -- SFX subfolder
+    self.SFXFolder = Instance.new("Folder")
+    self.SFXFolder.Name = "SFX"
+    self.SFXFolder.Parent = self.Container
 end
 
--- Set global volume (0-100 or 0-1)
-function SoundManager.SetGlobalVolume(volume)
-    -- Accept 0-100 and convert to 0-1
+-- ════════════════════════════════════════════════════════════════════════════════
+-- VOLUME CONTROLS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:SetVolume(volume)
+    -- Accept 0-100 or 0-1
     if volume > 1 then
         volume = volume / 100
     end
-    SoundManager.GlobalVolume = math.clamp(volume, 0, 1)
+    self.GlobalVolume = math.clamp(volume, 0, 1)
+    self:UpdateAllVolumes()
+    return self
+end
+
+function SoundPlayer:SetMusicVolume(volume)
+    if volume > 1 then
+        volume = volume / 100
+    end
+    self.MusicVolume = math.clamp(volume, 0, 1)
     
-    -- Update all active sounds
-    for name, sound in pairs(SoundManager.Sounds) do
-        if sound and sound.BaseVolume then
-            sound.Volume = sound.BaseVolume * SoundManager.GlobalVolume * SoundManager.SFXVolume
+    if self.CurrentMusic then
+        local target = self.CurrentMusic.BaseVolume * self.GlobalVolume * self.MusicVolume
+        TweenService:Create(self.CurrentMusic, TweenInfo.new(0.2), {Volume = target}):Play()
+    end
+    
+    return self
+end
+
+function SoundPlayer:SetSFXVolume(volume)
+    if volume > 1 then
+        volume = volume / 100
+    end
+    self.SFXVolume = math.clamp(volume, 0, 1)
+    self:UpdateAllVolumes()
+    return self
+end
+
+function SoundPlayer:GetVolume()
+    return math.floor(self.GlobalVolume * 100)
+end
+
+function SoundPlayer:GetMusicVolume()
+    return math.floor(self.MusicVolume * 100)
+end
+
+function SoundPlayer:GetSFXVolume()
+    return math.floor(self.SFXVolume * 100)
+end
+
+function SoundPlayer:UpdateAllVolumes()
+    for _, sound in pairs(self.Sounds) do
+        if sound and sound.Parent and sound.BaseVolume then
+            sound.Volume = sound.BaseVolume * self.GlobalVolume * self.SFXVolume
         end
     end
-    
-    -- Update current music
-    if SoundManager.CurrentMusic and SoundManager.CurrentMusic.BaseVolume then
-        SoundManager.CurrentMusic.Volume = SoundManager.CurrentMusic.BaseVolume * SoundManager.GlobalVolume * SoundManager.MusicVolume
-    end
 end
 
--- Get global volume (0-100)
-function SoundManager.GetGlobalVolume()
-    return SoundManager.GlobalVolume * 100
-end
-
--- Enable/Disable all sounds
-function SoundManager.SetSoundsEnabled(enabled)
-    SoundManager.SoundsEnabled = enabled
+function SoundPlayer:SetEnabled(enabled)
+    self.Enabled = enabled
     
     if not enabled then
-        -- Mute all
-        for name, sound in pairs(SoundManager.Sounds) do
-            if sound then sound.Volume = 0 end
-        end
-        if SoundManager.CurrentMusic then
-            SoundManager.CurrentMusic.Volume = 0
-        end
-    else
-        -- Restore volumes
-        for name, sound in pairs(SoundManager.Sounds) do
-            if sound and sound.BaseVolume then
-                sound.Volume = sound.BaseVolume * SoundManager.GlobalVolume * SoundManager.SFXVolume
-            end
-        end
-        if SoundManager.CurrentMusic and SoundManager.CurrentMusic.BaseVolume then
-            SoundManager.CurrentMusic.Volume = SoundManager.CurrentMusic.BaseVolume * SoundManager.GlobalVolume * SoundManager.MusicVolume
-        end
+        self:StopAll()
     end
-end
-
--- Check if sounds are enabled
-function SoundManager.AreSoundsEnabled()
-    return SoundManager.SoundsEnabled
-end
-
--- Set music volume (0-100 or 0-1)
-function SoundManager.SetMusicVolume(volume)
-    if volume > 1 then
-        volume = volume / 100
-    end
-    SoundManager.MusicVolume = math.clamp(volume, 0, 1)
     
-    if SoundManager.CurrentMusic and SoundManager.CurrentMusic.BaseVolume and SoundManager.SoundsEnabled then
-        SoundManager.CurrentMusic.Volume = SoundManager.CurrentMusic.BaseVolume * SoundManager.GlobalVolume * SoundManager.MusicVolume
-    end
+    return self
 end
 
--- Set SFX volume (0-100 or 0-1)
-function SoundManager.SetSFXVolume(volume)
-    if volume > 1 then
-        volume = volume / 100
-    end
-    SoundManager.SFXVolume = math.clamp(volume, 0, 1)
-    
-    for name, sound in pairs(SoundManager.Sounds) do
-        if sound and sound.BaseVolume and SoundManager.SoundsEnabled then
-            sound.Volume = sound.BaseVolume * SoundManager.GlobalVolume * SoundManager.SFXVolume
-        end
-    end
+function SoundPlayer:IsEnabled()
+    return self.Enabled
 end
 
--- Play a sound effect
-function SoundManager.PlaySound(options)
-    if not SoundManager.SoundsEnabled then return nil end
+-- ════════════════════════════════════════════════════════════════════════════════
+-- SOUND EFFECTS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:Play(options)
+    if not self.Enabled then return nil end
+    self:Init()
     
-    InitDependencies()
+    if type(options) == "string" or type(options) == "number" then
+        options = {Id = options}
+    end
     
     options = options or {}
     local Id = options.Id or options.SoundId
     local Volume = options.Volume or 0.5
-    local Pitch = options.Pitch or 1
-    local Looped = options.Looped or false
-    local Name = options.Name or "Sound_" .. tostring(Id)
+    local Pitch = options.Pitch or options.PlaybackSpeed or 1.0
+    local Loop = options.Loop or options.Looped or false
+    local Name = options.Name or tostring(Id)
+    local Timeout = options.Timeout or 10
+    local Parent = options.Parent or self.SFXFolder
     
+    -- Normalize ID
+    if type(Id) == "number" then
+        Id = "rbxassetid://" .. Id
+    end
+    
+    -- Create sound
     local sound = Instance.new("Sound")
-    sound.SoundId = type(Id) == "number" and ("rbxassetid://" .. Id) or Id
+    sound.Name = "SFX_" .. Name
+    sound.SoundId = Id
+    sound.Volume = 0  -- Start at 0, fade in
     sound.PlaybackSpeed = Pitch
-    sound.Looped = Looped
-    sound.Parent = Services.SoundService
+    sound.Looped = Loop
+    sound.RollOffMode = Enum.RollOffMode.Linear
+    sound.Parent = Parent
     
-    -- Store base volume for global volume calculations
+    -- Store base volume
     sound.BaseVolume = Volume
-    sound.Volume = Volume * SoundManager.GlobalVolume * SoundManager.SFXVolume
     
-    SoundManager.Sounds[Name] = sound
+    -- Calculate final volume
+    local finalVolume = Volume * self.GlobalVolume * self.SFXVolume
+    
+    -- Fade in quickly
+    sound.Volume = finalVolume
     sound:Play()
     
-    if not Looped then
-        sound.Ended:Connect(function()
-            SoundManager.Sounds[Name] = nil
+    -- Track
+    self.Sounds[Name] = sound
+    
+    -- Cleanup for non-looped sounds
+    if not Loop then
+        local connection
+        connection = sound.Ended:Connect(function()
+            connection:Disconnect()
+            self.Sounds[Name] = nil
             sound:Destroy()
+        end)
+        
+        -- Timeout safety
+        task.delay(Timeout, function()
+            if sound and sound.Parent then
+                self.Sounds[Name] = nil
+                sound:Destroy()
+            end
         end)
     end
     
     return sound
 end
 
--- Play music (stops previous)
-function SoundManager.PlayMusic(options)
-    if not SoundManager.SoundsEnabled then return nil end
+function SoundPlayer:PlayPreset(presetName, overrides)
+    local preset = self.Presets[presetName]
+    if not preset then
+        warn("[SoundPlayer] Unknown preset:", presetName)
+        return nil
+    end
     
-    InitDependencies()
+    local options = {}
+    for k, v in pairs(preset) do
+        options[k] = v
+    end
     
-    -- Stop current music
-    if SoundManager.CurrentMusic then
-        SoundManager.StopMusic(0.5)
+    if overrides then
+        for k, v in pairs(overrides) do
+            options[k] = v
+        end
+    end
+    
+    options.Name = presetName
+    return self:Play(options)
+end
+
+function SoundPlayer:Stop(name, fade)
+    local sound = self.Sounds[name]
+    if not sound then return end
+    
+    fade = fade or 0.1
+    
+    if fade > 0 then
+        TweenService:Create(sound, TweenInfo.new(fade), {Volume = 0}):Play()
+        task.delay(fade, function()
+            self.Sounds[name] = nil
+            if sound and sound.Parent then
+                sound:Destroy()
+            end
+        end)
+    else
+        self.Sounds[name] = nil
+        sound:Destroy()
+    end
+end
+
+function SoundPlayer:StopAll()
+    for name, sound in pairs(self.Sounds) do
+        if sound and sound.Parent then
+            sound:Destroy()
+        end
+    end
+    self.Sounds = {}
+    
+    self:StopMusic(0)
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- MUSIC PLAYBACK
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:PlayMusic(options, crossfade)
+    if not self.Enabled then return nil end
+    self:Init()
+    
+    crossfade = crossfade or 1.5
+    
+    if type(options) == "string" or type(options) == "number" then
+        options = {Id = options}
     end
     
     options = options or {}
     local Id = options.Id or options.SoundId
-    local Volume = options.Volume or 0.3
-    local FadeIn = options.FadeIn or 2
-    local Looped = options.Looped ~= false
+    local Volume = options.Volume or 0.5
+    local Pitch = options.Pitch or options.PlaybackSpeed or 1.0
+    local StartTime = options.StartTime or 0
     
+    -- Normalize ID
+    if type(Id) == "number" then
+        Id = "rbxassetid://" .. Id
+    end
+    
+    -- Crossfade out current music
+    if self.CurrentMusic then
+        local oldMusic = self.CurrentMusic
+        TweenService:Create(oldMusic, TweenInfo.new(crossfade), {Volume = 0}):Play()
+        task.delay(crossfade, function()
+            if oldMusic and oldMusic.Parent then
+                oldMusic:Destroy()
+            end
+        end)
+    end
+    
+    -- Create new music
     local music = Instance.new("Sound")
-    music.SoundId = type(Id) == "number" and ("rbxassetid://" .. Id) or Id
+    music.Name = "Music"
+    music.SoundId = Id
     music.Volume = 0
-    music.Looped = Looped
-    music.Parent = Services.SoundService
+    music.PlaybackSpeed = Pitch
+    music.Looped = options.Loop ~= false
+    music.TimePosition = StartTime
+    music.Parent = self.MusicFolder
     
-    -- Store base volume
     music.BaseVolume = Volume
     
-    SoundManager.CurrentMusic = music
+    -- Fade in
+    local targetVolume = Volume * self.GlobalVolume * self.MusicVolume
     music:Play()
+    TweenService:Create(music, TweenInfo.new(crossfade), {Volume = targetVolume}):Play()
     
-    -- Fade in with global volume applied
-    local targetVolume = Volume * SoundManager.GlobalVolume * SoundManager.MusicVolume
-    Services.TweenService:Create(music, TweenInfo.new(FadeIn), {Volume = targetVolume}):Play()
+    self.CurrentMusic = music
+    
+    -- Handle track end for playlists
+    if not music.Looped then
+        music.Ended:Connect(function()
+            self:OnMusicEnded()
+        end)
+    end
     
     return music
 end
 
--- Stop music with fade
-function SoundManager.StopMusic(fadeOut)
-    InitDependencies()
+function SoundPlayer:StopMusic(fadeOut)
+    fadeOut = fadeOut or 1.5
     
-    fadeOut = fadeOut or 1
+    if self.CurrentMusic then
+        local music = self.CurrentMusic
+        self.CurrentMusic = nil
+        
+        if fadeOut > 0 then
+            TweenService:Create(music, TweenInfo.new(fadeOut), {Volume = 0}):Play()
+            task.delay(fadeOut, function()
+                if music and music.Parent then
+                    music:Destroy()
+                end
+            end)
+        else
+            music:Destroy()
+        end
+    end
+end
+
+function SoundPlayer:PauseMusic()
+    if self.CurrentMusic then
+        self.CurrentMusic:Pause()
+    end
+end
+
+function SoundPlayer:ResumeMusic()
+    if self.CurrentMusic then
+        self.CurrentMusic:Resume()
+    end
+end
+
+function SoundPlayer:SetMusicPosition(time)
+    if self.CurrentMusic then
+        self.CurrentMusic.TimePosition = time
+    end
+end
+
+function SoundPlayer:GetMusicPosition()
+    if self.CurrentMusic then
+        return self.CurrentMusic.TimePosition
+    end
+    return 0
+end
+
+function SoundPlayer:GetMusicLength()
+    if self.CurrentMusic then
+        return self.CurrentMusic.TimeLength
+    end
+    return 0
+end
+
+function SoundPlayer:IsMusicPlaying()
+    return self.CurrentMusic and self.CurrentMusic.IsPlaying
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- PLAYLIST
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:SetPlaylist(tracks)
+    self.Playlist = tracks
+    self.PlaylistIndex = 0
+    return self
+end
+
+function SoundPlayer:AddToPlaylist(track)
+    table.insert(self.Playlist, track)
+    return self
+end
+
+function SoundPlayer:ClearPlaylist()
+    self.Playlist = {}
+    self.PlaylistIndex = 0
+    return self
+end
+
+function SoundPlayer:PlayNext()
+    if #self.Playlist == 0 then return end
     
-    if SoundManager.CurrentMusic then
-        local music = SoundManager.CurrentMusic
-        Services.TweenService:Create(music, TweenInfo.new(fadeOut), {Volume = 0}):Play()
+    if self.ShuffleMode then
+        self.PlaylistIndex = math.random(1, #self.Playlist)
+    else
+        self.PlaylistIndex = self.PlaylistIndex + 1
+        if self.PlaylistIndex > #self.Playlist then
+            if self.RepeatMode == "all" then
+                self.PlaylistIndex = 1
+            else
+                return
+            end
+        end
+    end
+    
+    local track = self.Playlist[self.PlaylistIndex]
+    self:PlayMusic(track)
+end
+
+function SoundPlayer:PlayPrevious()
+    if #self.Playlist == 0 then return end
+    
+    self.PlaylistIndex = self.PlaylistIndex - 1
+    if self.PlaylistIndex < 1 then
+        self.PlaylistIndex = #self.Playlist
+    end
+    
+    local track = self.Playlist[self.PlaylistIndex]
+    self:PlayMusic(track)
+end
+
+function SoundPlayer:SetShuffle(enabled)
+    self.ShuffleMode = enabled
+    return self
+end
+
+function SoundPlayer:SetRepeat(mode)
+    self.RepeatMode = mode  -- "none", "one", "all"
+    return self
+end
+
+function SoundPlayer:OnMusicEnded()
+    if self.RepeatMode == "one" then
+        self.CurrentMusic.TimePosition = 0
+        self.CurrentMusic:Play()
+    elseif #self.Playlist > 0 then
+        self:PlayNext()
+    end
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CUSTOM PRESETS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:AddPreset(name, options)
+    self.Presets[name] = options
+    return self
+end
+
+function SoundPlayer:RemovePreset(name)
+    self.Presets[name] = nil
+    return self
+end
+
+function SoundPlayer:GetPresets()
+    local names = {}
+    for name in pairs(self.Presets) do
+        table.insert(names, name)
+    end
+    return names
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- AUDIO ANALYSIS (Visualization data)
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:GetLoudness()
+    if self.CurrentMusic then
+        return self.CurrentMusic.PlaybackLoudness
+    end
+    return 0
+end
+
+function SoundPlayer:OnLoudnessChanged(callback, interval)
+    interval = interval or 0.05
+    
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if not self.CurrentMusic then return end
         
-        task.delay(fadeOut, function()
-            if music then music:Destroy() end
-        end)
+        local loudness = self.CurrentMusic.PlaybackLoudness
+        local normalized = math.clamp(loudness / 500, 0, 1)
+        callback(loudness, normalized)
+    end)
+    
+    return connection
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- UTILITY
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function SoundPlayer:Preload(soundIds)
+    local ContentProvider = game:GetService("ContentProvider")
+    local assets = {}
+    
+    for _, id in ipairs(soundIds) do
+        if type(id) == "number" then
+            id = "rbxassetid://" .. id
+        end
         
-        SoundManager.CurrentMusic = nil
+        local sound = Instance.new("Sound")
+        sound.SoundId = id
+        table.insert(assets, sound)
     end
+    
+    task.spawn(function()
+        ContentProvider:PreloadAsync(assets)
+        
+        for _, sound in ipairs(assets) do
+            sound:Destroy()
+        end
+    end)
 end
 
--- Pause/Resume music
-function SoundManager.PauseMusic()
-    if SoundManager.CurrentMusic then
-        SoundManager.CurrentMusic:Pause()
+function SoundPlayer:GetActiveCount()
+    local count = 0
+    for _ in pairs(self.Sounds) do
+        count = count + 1
     end
+    return count
 end
 
-function SoundManager.ResumeMusic()
-    if SoundManager.CurrentMusic then
-        SoundManager.CurrentMusic:Resume()
-    end
-end
+-- Shorthand
+SoundPlayer.SFX = SoundPlayer.PlayPreset
+SoundPlayer.Music = SoundPlayer.PlayMusic
 
--- Stop a specific sound
-function SoundManager.StopSound(name)
-    local sound = SoundManager.Sounds[name]
-    if sound then
-        sound:Destroy()
-        SoundManager.Sounds[name] = nil
-    end
-end
-
--- Stop all sounds
-function SoundManager.StopAll()
-    for name, sound in pairs(SoundManager.Sounds) do
-        if sound then sound:Destroy() end
-    end
-    SoundManager.Sounds = {}
-    SoundManager.StopMusic(0)
-end
-
--- Preset sound effects
-SoundManager.Presets = {
-    Click = {Id = 6895079853, Volume = 0.3},
-    Hover = {Id = 6895079709, Volume = 0.2},
-    Success = {Id = 6895079946, Volume = 0.4},
-    Error = {Id = 6895080346, Volume = 0.4},
-    Notification = {Id = 6026984224, Volume = 0.3},
-    Toggle = {Id = 7072706796, Volume = 0.3},
-    Open = {Id = 6895079576, Volume = 0.3},
-    Close = {Id = 6895079449, Volume = 0.3},
-    Pop = {Id = 6895079801, Volume = 0.25}
-}
-
-function SoundManager.PlayPreset(presetName)
-    local preset = SoundManager.Presets[presetName]
-    if preset then
-        return SoundManager.PlaySound(preset)
-    end
-end
-
--- Add custom preset
-function SoundManager.AddPreset(name, options)
-    SoundManager.Presets[name] = options
-end
-
-return SoundManager
+return SoundPlayer
 
 end
 
@@ -5015,6 +5869,221 @@ function ImageLoader.ClearCache()
 end
 
 return ImageLoader
+
+end
+
+-- Module: Utils/Icons
+_modules["Utils/Icons"] = function()
+    local script = {Parent = {Parent = {}}}
+
+--[[
+    ╔═══════════════════════════════════════════════════════════════╗
+    ║                      NEXUS UI LIBRARY                         ║
+    ║                       GUI Framework                           ║
+    ║                          By Ryu                               ║
+    ║                     PREBUILT ICONS v1.0                       ║
+    ╚═══════════════════════════════════════════════════════════════╝
+    
+    Usage:
+        local Icons = NexusUI.Icons
+        Tab:AddButton({
+            Title = "Join Discord",
+            Icon = Icons.Discord
+        })
+        
+        -- Or by name
+        Tab:AddButton({
+            Title = "Login",
+            Icon = Icons.Get("Google")
+        })
+]]
+
+local Icons = {}
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- SOCIAL & BRAND ICONS (using free Roblox asset IDs)
+-- ════════════════════════════════════════════════════════════════════════════════
+
+-- Social Media
+Icons.Discord = "rbxassetid://7733717447"
+Icons.Twitter = "rbxassetid://7733715400"  
+Icons.YouTube = "rbxassetid://7733679686"
+Icons.Twitch = "rbxassetid://7733717096"
+Icons.TikTok = "rbxassetid://7733875813"
+Icons.Instagram = "rbxassetid://7733882200"
+Icons.Facebook = "rbxassetid://7733960981"
+Icons.Reddit = "rbxassetid://7733960548"
+Icons.LinkedIn = "rbxassetid://7733687252"
+Icons.GitHub = "rbxassetid://7733658504"
+
+-- Services & Apps
+Icons.Google = "rbxassetid://7734006531"
+Icons.Apple = "rbxassetid://7733993426"
+Icons.Microsoft = "rbxassetid://7734009897"
+Icons.Steam = "rbxassetid://7733717283"
+Icons.Spotify = "rbxassetid://7733717176"
+Icons.PayPal = "rbxassetid://7733690310"
+Icons.Amazon = "rbxassetid://7733993559"
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- UI ICONS (Common Actions)
+-- ════════════════════════════════════════════════════════════════════════════════
+
+-- Navigation
+Icons.Home = "rbxassetid://7733960981"
+Icons.Settings = "rbxassetid://7743879203"
+Icons.Menu = "rbxassetid://7733658504"
+Icons.Back = "rbxassetid://7734048966"
+Icons.Forward = "rbxassetid://7734048822"
+Icons.Up = "rbxassetid://7734047951"
+Icons.Down = "rbxassetid://7734047822"
+Icons.Left = "rbxassetid://7734047702"
+Icons.Right = "rbxassetid://7734047577"
+
+-- Actions
+Icons.Search = "rbxassetid://7734053495"
+Icons.Plus = "rbxassetid://7743878653"
+Icons.Minus = "rbxassetid://7743878440"
+Icons.Close = "rbxassetid://7743878326"
+Icons.Check = "rbxassetid://10709790644"
+Icons.Edit = "rbxassetid://7734053098"
+Icons.Delete = "rbxassetid://7734053230"
+Icons.Copy = "rbxassetid://7734034509"
+Icons.Paste = "rbxassetid://7734034397"
+Icons.Save = "rbxassetid://7734034285"
+Icons.Download = "rbxassetid://7734034165"
+Icons.Upload = "rbxassetid://7734034045"
+Icons.Refresh = "rbxassetid://7734033925"
+Icons.Lock = "rbxassetid://7734033805"
+Icons.Unlock = "rbxassetid://7734033685"
+Icons.Eye = "rbxassetid://7734033565"
+Icons.EyeOff = "rbxassetid://7734033445"
+
+-- Media
+Icons.Play = "rbxassetid://7734020045"
+Icons.Pause = "rbxassetid://7734019925"
+Icons.Stop = "rbxassetid://7734019805"
+Icons.Previous = "rbxassetid://7734019685"
+Icons.Next = "rbxassetid://7734019565"
+Icons.Volume = "rbxassetid://7734019445"
+Icons.VolumeMute = "rbxassetid://7734019325"
+Icons.Fullscreen = "rbxassetid://7734019205"
+
+-- Communication
+Icons.Chat = "rbxassetid://7734008998"
+Icons.Message = "rbxassetid://7734008878"
+Icons.Notification = "rbxassetid://7734008758"
+Icons.Bell = "rbxassetid://7734008638"
+Icons.Mail = "rbxassetid://7734008518"
+Icons.Phone = "rbxassetid://7734008398"
+
+-- User
+Icons.User = "rbxassetid://7733687140"
+Icons.Users = "rbxassetid://7733687028"
+Icons.Profile = "rbxassetid://7733686916"
+Icons.Crown = "rbxassetid://7733686804"
+Icons.Star = "rbxassetid://7733686692"
+Icons.Heart = "rbxassetid://7733686580"
+
+-- Status
+Icons.Success = "rbxassetid://7733960981"
+Icons.Warning = "rbxassetid://7743879203"
+Icons.Error = "rbxassetid://7743878326"
+Icons.Info = "rbxassetid://7733687252"
+Icons.Question = "rbxassetid://7733687364"
+Icons.Loading = "rbxassetid://7734020165"
+
+-- Gaming
+Icons.Controller = "rbxassetid://7733679798"
+Icons.Trophy = "rbxassetid://7733679910"
+Icons.Target = "rbxassetid://7733680022"
+Icons.Sword = "rbxassetid://7733680134"
+Icons.Shield = "rbxassetid://7733680246"
+Icons.Magic = "rbxassetid://7733680358"
+Icons.Coin = "rbxassetid://7733680470"
+Icons.Gem = "rbxassetid://7733680582"
+
+-- Files & Folders
+Icons.File = "rbxassetid://7733694600"
+Icons.Folder = "rbxassetid://7733694712"
+Icons.FolderOpen = "rbxassetid://7733694824"
+Icons.Document = "rbxassetid://7733694936"
+Icons.Image = "rbxassetid://7733695048"
+Icons.Video = "rbxassetid://7733695160"
+Icons.Audio = "rbxassetid://7733695272"
+Icons.Code = "rbxassetid://7733695384"
+
+-- Misc
+Icons.Link = "rbxassetid://7733700100"
+Icons.Unlink = "rbxassetid://7733700212"
+Icons.Clock = "rbxassetid://7733700324"
+Icons.Calendar = "rbxassetid://7733700436"
+Icons.Map = "rbxassetid://7733700548"
+Icons.Globe = "rbxassetid://7733700660"
+Icons.Sun = "rbxassetid://7733700772"
+Icons.Moon = "rbxassetid://7733700884"
+Icons.Key = "rbxassetid://7733700996"
+Icons.Gift = "rbxassetid://7733701108"
+Icons.Fire = "rbxassetid://7733701220"
+Icons.Bolt = "rbxassetid://7733701332"
+Icons.Sparkle = "rbxassetid://7733701444"
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- HELPER FUNCTIONS
+-- ════════════════════════════════════════════════════════════════════════════════
+
+-- Get icon by name (case-insensitive)
+function Icons.Get(name)
+    local normalizedName = name:gsub("^%l", string.upper)
+    return Icons[normalizedName] or Icons.Question
+end
+
+-- Get all icon names
+function Icons.GetNames()
+    local names = {}
+    for name, value in pairs(Icons) do
+        if type(value) == "string" then
+            table.insert(names, name)
+        end
+    end
+    table.sort(names)
+    return names
+end
+
+-- Check if icon exists
+function Icons.Has(name)
+    local normalizedName = name:gsub("^%l", string.upper)
+    return Icons[normalizedName] ~= nil
+end
+
+-- Category groups for easy access
+Icons.Categories = {
+    Social = {"Discord", "Twitter", "YouTube", "Twitch", "TikTok", "Instagram", "Facebook", "Reddit", "LinkedIn", "GitHub"},
+    Services = {"Google", "Apple", "Microsoft", "Steam", "Spotify", "PayPal", "Amazon"},
+    Navigation = {"Home", "Settings", "Menu", "Back", "Forward", "Up", "Down", "Left", "Right"},
+    Actions = {"Search", "Plus", "Minus", "Close", "Check", "Edit", "Delete", "Copy", "Paste", "Save", "Download", "Upload", "Refresh", "Lock", "Unlock", "Eye", "EyeOff"},
+    Media = {"Play", "Pause", "Stop", "Previous", "Next", "Volume", "VolumeMute", "Fullscreen"},
+    Communication = {"Chat", "Message", "Notification", "Bell", "Mail", "Phone"},
+    User = {"User", "Users", "Profile", "Crown", "Star", "Heart"},
+    Status = {"Success", "Warning", "Error", "Info", "Question", "Loading"},
+    Gaming = {"Controller", "Trophy", "Target", "Sword", "Shield", "Magic", "Coin", "Gem"},
+    Files = {"File", "Folder", "FolderOpen", "Document", "Image", "Video", "Audio", "Code"},
+    Misc = {"Link", "Unlink", "Clock", "Calendar", "Map", "Globe", "Sun", "Moon", "Key", "Gift", "Fire", "Bolt", "Sparkle"}
+}
+
+-- Get icons by category
+function Icons.GetCategory(category)
+    local categoryIcons = {}
+    local categoryNames = Icons.Categories[category]
+    if categoryNames then
+        for _, name in ipairs(categoryNames) do
+            categoryIcons[name] = Icons[name]
+        end
+    end
+    return categoryIcons
+end
+
+return Icons
 
 end
 
@@ -6933,77 +8002,317 @@ _modules["Components/KeySystem"] = function()
     ║                      NEXUS UI LIBRARY                         ║
     ║                       GUI Framework                           ║
     ║                          By Ryu                               ║
-    ║                    KEY SYSTEM v1.0                            ║
+    ║              KEY SYSTEM v2.0 (External API)                   ║
     ╚═══════════════════════════════════════════════════════════════╝
     
-    Usage:
-        local KeySystem = NexusUI:CreateKeySystem({
-            Title = "Script Hub",
-            Subtitle = "Enter your key to access",
+    Enhanced Key System with External Verification Endpoints
+    
+    Usage for Script Developers:
+    
+    1. STATIC KEY LIST:
+        NexusUI:CreateKeySystem({
             Keys = {"KEY-ABC123", "KEY-DEF456"},
-            KeyLink = "https://link.example/getkey",
-            SaveKey = true,
-            Discord = "https://discord.gg/example"
+            Discord = "discord.gg/yourserver"
         })
-        
-        KeySystem:OnValidated(function()
-            -- Key was valid, continue with script
-            local Window = NexusUI:CreateWindow({...})
-        end)
+    
+    2. EXTERNAL API VERIFICATION:
+        NexusUI:CreateKeySystem({
+            VerifyURL = "https://your-api.com/verify",
+            Method = "POST",  -- GET or POST
+            Headers = {["Authorization"] = "Bearer token"},
+            BodyFormat = {key = "{KEY}", hwid = "{HWID}"},
+            SuccessField = "valid",  -- JSON response field to check
+            SuccessValue = true,     -- Expected value for success
+            ErrorField = "message",  -- Field for error message
+            Discord = "discord.gg/yourserver"
+        })
+    
+    3. LINKVERTISE/GETKEY FLOW:
+        NexusUI:CreateKeySystem({
+            GetKeyURL = "https://link.to/getkey",
+            CheckpointURL = "https://your-api.com/checkpoint/{KEY}",
+            Keys = {"valid-key"},
+            Discord = "discord.gg/yourserver"
+        })
+    
+    4. HWID LOCKED:
+        NexusUI:CreateKeySystem({
+            VerifyURL = "https://api.com/verify",
+            HWIDLocked = true,  -- Sends HWID with request
+            SaveKey = true      -- Persists key locally
+        })
 ]]
 
 local KeySystem = {}
 KeySystem.__index = KeySystem
 
 local Creator
-local Flipper
 local Services
+local HttpService = game:GetService("HttpService")
 
 local function InitDependencies()
     local root = script.Parent.Parent
     Creator = _require("Core/Creator")
-    Flipper = _require("Packages/Flipper")
     Services = _require("Core/Services")
 end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- HWID GENERATION
+-- ════════════════════════════════════════════════════════════════════════════════
+
+local function GetHWID()
+    local hwid = ""
+    
+    local success, result = pcall(function()
+        if gethwid then
+            return gethwid()
+        elseif get_hwid then
+            return get_hwid()
+        elseif getexecutorname and identifyexecutor then
+            -- Fallback: generate pseudo-HWID
+            local player = game:GetService("Players").LocalPlayer
+            local executor = identifyexecutor and identifyexecutor() or "Unknown"
+            local userId = player and player.UserId or 0
+            return HttpService:GenerateGUID(false) .. "-" .. tostring(userId) .. "-" .. executor
+        end
+        return "UNKNOWN-HWID"
+    end)
+    
+    return success and result or "UNKNOWN-HWID"
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- CONSTRUCTOR
+-- ════════════════════════════════════════════════════════════════════════════════
 
 function KeySystem.new(options)
     InitDependencies()
     
     options = options or {}
-    local Title = options.Title or "Key System"
-    local Subtitle = options.Subtitle or "Enter your key to continue"
-    local Logo = options.Logo
-    local BackgroundImage = options.BackgroundImage
-    local Keys = options.Keys or {}
-    local KeyLink = options.KeyLink
-    local ValidateCallback = options.ValidateCallback  -- Custom validation function
-    local SaveKey = options.SaveKey ~= false
-    local KeyName = options.KeyName or "NexusUI_Key"
-    local Discord = options.Discord
-    local MaxAttempts = options.MaxAttempts or 5
-    local OnSuccess = options.OnSuccess or function() end
-    local OnFailure = options.OnFailure or function() end
     
     local self = setmetatable({}, KeySystem)
+    
+    -- Basic settings
+    self.Title = options.Title or "Key System"
+    self.Subtitle = options.Subtitle or "Enter your key to continue"
+    self.Logo = options.Logo
+    self.BackgroundImage = options.BackgroundImage
+    self.Discord = options.Discord
+    self.MaxAttempts = options.MaxAttempts or 5
+    self.KeyName = options.KeyName or "NexusUI_Key"
+    self.SaveKey = options.SaveKey ~= false
+    
+    -- Static keys (local validation)
+    self.Keys = options.Keys or {}
+    
+    -- External API verification
+    self.VerifyURL = options.VerifyURL
+    self.Method = options.Method or "POST"
+    self.Headers = options.Headers or {}
+    self.BodyFormat = options.BodyFormat or {key = "{KEY}"}
+    self.SuccessField = options.SuccessField or "success"
+    self.SuccessValue = options.SuccessValue
+    self.ErrorField = options.ErrorField or "message"
+    self.Timeout = options.Timeout or 10
+    
+    -- GetKey URL flow
+    self.GetKeyURL = options.GetKeyURL
+    self.CheckpointURL = options.CheckpointURL
+    
+    -- HWID options
+    self.HWIDLocked = options.HWIDLocked or false
+    self.HWID = self.HWIDLocked and GetHWID() or nil
+    
+    -- Custom validation callback
+    self.ValidateCallback = options.ValidateCallback
+    
+    -- Callbacks
+    self.OnSuccess = options.OnSuccess or function() end
+    self.OnFailure = options.OnFailure or function() end
+    
+    -- State
     self.Validated = false
     self.Attempts = 0
-    self.MaxAttempts = MaxAttempts
-    self.OnSuccessCallback = OnSuccess
-    self.Keys = Keys
-    self.ValidateCallback = ValidateCallback
     
-    -- Check for saved key first
-    if SaveKey then
-        local savedKey = self:GetSavedKey(KeyName)
-        if savedKey and self:ValidateKey(savedKey) then
-            self.Validated = true
-            task.defer(function()
-                self.OnSuccessCallback()
+    -- Check for saved key first (instant bypass)
+    if self.SaveKey then
+        local savedKey = self:GetSavedKey()
+        if savedKey then
+            self:ValidateKeyAsync(savedKey, function(valid, message)
+                if valid then
+                    self.Validated = true
+                    task.defer(function()
+                        self.OnSuccess()
+                    end)
+                else
+                    -- Key expired or invalid, show UI
+                    self:CreateUI()
+                end
             end)
-            return self
+            
+            if self.Validated then
+                return self
+            end
         end
     end
     
+    -- No valid saved key, show UI
+    self:CreateUI()
+    
+    return self
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- KEY VALIDATION
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function KeySystem:ValidateKey(key)
+    if not key or key == "" then
+        return false, "Key cannot be empty"
+    end
+    
+    -- 1. Custom callback validation
+    if self.ValidateCallback then
+        local result, message = self.ValidateCallback(key, self.HWID)
+        return result, message or (result and "Valid" or "Invalid key")
+    end
+    
+    -- 2. Static key list validation
+    if #self.Keys > 0 then
+        for _, validKey in ipairs(self.Keys) do
+            if key == validKey then
+                return true, "Key validated!"
+            end
+        end
+        return false, "Invalid key"
+    end
+    
+    return false, "No validation method configured"
+end
+
+function KeySystem:ValidateKeyAsync(key, callback)
+    if not key or key == "" then
+        callback(false, "Key cannot be empty")
+        return
+    end
+    
+    -- 1. Custom callback
+    if self.ValidateCallback then
+        local result, message = self.ValidateCallback(key, self.HWID)
+        callback(result, message or (result and "Valid" or "Invalid key"))
+        return
+    end
+    
+    -- 2. External API verification
+    if self.VerifyURL then
+        self:VerifyWithAPI(key, callback)
+        return
+    end
+    
+    -- 3. Static key list
+    if #self.Keys > 0 then
+        for _, validKey in ipairs(self.Keys) do
+            if key == validKey then
+                callback(true, "Key validated!")
+                return
+            end
+        end
+        callback(false, "Invalid key")
+        return
+    end
+    
+    callback(false, "No validation method configured")
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- EXTERNAL API VERIFICATION
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function KeySystem:VerifyWithAPI(key, callback)
+    if not request and not syn and not http_request then
+        callback(false, "HTTP requests not supported")
+        return
+    end
+    
+    local httpRequest = request or syn.request or http_request
+    
+    -- Build request body
+    local body = {}
+    for field, value in pairs(self.BodyFormat) do
+        local processed = tostring(value)
+        processed = processed:gsub("{KEY}", key)
+        processed = processed:gsub("{HWID}", self.HWID or "")
+        processed = processed:gsub("{USERID}", tostring(game:GetService("Players").LocalPlayer.UserId))
+        processed = processed:gsub("{USERNAME}", game:GetService("Players").LocalPlayer.Name)
+        body[field] = processed
+    end
+    
+    -- Build URL with GET params if needed
+    local url = self.VerifyURL
+    if self.Method == "GET" then
+        local params = {}
+        for k, v in pairs(body) do
+            table.insert(params, k .. "=" .. HttpService:UrlEncode(tostring(v)))
+        end
+        if #params > 0 then
+            url = url .. "?" .. table.concat(params, "&")
+        end
+    end
+    
+    -- Make request
+    task.spawn(function()
+        local success, response = pcall(function()
+            return httpRequest({
+                Url = url,
+                Method = self.Method,
+                Headers = self.Method == "POST" and 
+                    table.merge({["Content-Type"] = "application/json"}, self.Headers) or 
+                    self.Headers,
+                Body = self.Method == "POST" and HttpService:JSONEncode(body) or nil
+            })
+        end)
+        
+        if not success then
+            callback(false, "Request failed: " .. tostring(response))
+            return
+        end
+        
+        if response.StatusCode ~= 200 then
+            callback(false, "Server error: " .. tostring(response.StatusCode))
+            return
+        end
+        
+        -- Parse response
+        local parseSuccess, data = pcall(function()
+            return HttpService:JSONDecode(response.Body)
+        end)
+        
+        if not parseSuccess then
+            callback(false, "Invalid server response")
+            return
+        end
+        
+        -- Check success field
+        local isValid = false
+        if self.SuccessValue ~= nil then
+            isValid = data[self.SuccessField] == self.SuccessValue
+        else
+            isValid = data[self.SuccessField] == true or data[self.SuccessField] == "true"
+        end
+        
+        if isValid then
+            callback(true, data[self.ErrorField] or "Key validated!")
+        else
+            callback(false, data[self.ErrorField] or "Invalid key")
+        end
+    end)
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- UI CREATION
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function KeySystem:CreateUI()
     -- Create ScreenGui
     self.ScreenGui = Creator.New("ScreenGui", {
         Name = "NexusUI_KeySystem",
@@ -7032,17 +8341,17 @@ function KeySystem.new(options)
     -- Background
     self.Background = Creator.New("Frame", {
         Size = UDim2.fromScale(1, 1),
-        BackgroundColor3 = Color3.fromRGB(15, 15, 18),
+        BackgroundColor3 = Color3.fromRGB(10, 10, 15),
         Parent = self.ScreenGui
     })
     
-    -- Background Image (if provided)
-    if BackgroundImage then
+    -- Background Image
+    if self.BackgroundImage then
         Creator.New("ImageLabel", {
             Size = UDim2.fromScale(1, 1),
             BackgroundTransparency = 1,
-            Image = BackgroundImage,
-            ImageTransparency = 0.7,
+            Image = self.BackgroundImage,
+            ImageTransparency = 0.75,
             ScaleType = Enum.ScaleType.Crop,
             Parent = self.Background
         })
@@ -7052,44 +8361,43 @@ function KeySystem.new(options)
     Creator.New("Frame", {
         Size = UDim2.fromScale(1, 1),
         BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-        BackgroundTransparency = 0.5,
+        BackgroundTransparency = 0.4,
         Parent = self.Background
     }, {
         Creator.New("UIGradient", {
             Rotation = 90,
-            Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.3),
-                NumberSequenceKeypoint.new(0.5, 0.6),
-                NumberSequenceKeypoint.new(1, 0.3)
+            Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 20))
             })
         })
     })
     
     -- Main Container
     self.Container = Creator.New("Frame", {
-        Size = UDim2.fromOffset(380, 420),
+        Size = UDim2.fromOffset(400, 480),
         Position = UDim2.fromScale(0.5, 0.5),
         AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 0.08,
-        Parent = self.Background,
-        ThemeTag = {BackgroundColor3 = "Dialog"}
+        BackgroundColor3 = Color3.fromRGB(22, 22, 28),
+        BackgroundTransparency = 0.05,
+        Parent = self.Background
     }, {
         Creator.New("UICorner", {CornerRadius = UDim.new(0, 16)}),
         Creator.New("UIStroke", {
             Thickness = 2,
-            Transparency = 0.5,
-            ThemeTag = {Color = "Accent"}
+            Color = Color3.fromRGB(60, 120, 200),
+            Transparency = 0.4
         })
     })
     
     -- Shadow
     Creator.New("ImageLabel", {
-        Size = UDim2.new(1, 60, 1, 60),
+        Size = UDim2.new(1, 70, 1, 70),
         Position = UDim2.fromScale(0.5, 0.5),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Image = "rbxassetid://5028857472",
         ImageColor3 = Color3.new(0, 0, 0),
-        ImageTransparency = 0.4,
+        ImageTransparency = 0.35,
         BackgroundTransparency = 1,
         ZIndex = -1,
         ScaleType = Enum.ScaleType.Slice,
@@ -7097,329 +8405,364 @@ function KeySystem.new(options)
         Parent = self.Container
     })
     
-    -- Logo/Icon
-    local logoY = 35
-    if Logo then
-        self.LogoImage = Creator.New("ImageLabel", {
+    -- Logo
+    local logoY = 40
+    if self.Logo then
+        Creator.New("ImageLabel", {
             Size = UDim2.fromOffset(80, 80),
             Position = UDim2.new(0.5, 0, 0, logoY),
             AnchorPoint = Vector2.new(0.5, 0),
             BackgroundTransparency = 1,
-            Image = Logo,
+            Image = self.Logo,
             Parent = self.Container
         }, {
             Creator.New("UICorner", {CornerRadius = UDim.new(0, 16)})
         })
         logoY = logoY + 95
     else
-        -- Default lock icon
-        self.LogoImage = Creator.New("ImageLabel", {
-            Size = UDim2.fromOffset(64, 64),
+        Creator.New("ImageLabel", {
+            Size = UDim2.fromOffset(72, 72),
             Position = UDim2.new(0.5, 0, 0, logoY),
             AnchorPoint = Vector2.new(0.5, 0),
             BackgroundTransparency = 1,
-            Image = "rbxassetid://7733700996",  -- Key icon
-            ImageColor3 = Color3.fromRGB(0, 146, 214),
+            Image = "rbxassetid://7733700996",
+            ImageColor3 = Color3.fromRGB(60, 140, 220),
             Parent = self.Container
         })
-        logoY = logoY + 80
+        logoY = logoY + 88
     end
     
     -- Title
-    self.TitleLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -40, 0, 28),
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 30),
         Position = UDim2.new(0.5, 0, 0, logoY),
         AnchorPoint = Vector2.new(0.5, 0),
         BackgroundTransparency = 1,
-        Text = Title,
+        Text = self.Title,
         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
-        TextSize = 22,
-        Parent = self.Container,
-        ThemeTag = {TextColor3 = "Text"}
+        TextSize = 24,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Parent = self.Container
     })
     
     -- Subtitle
-    self.SubtitleLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -40, 0, 20),
-        Position = UDim2.new(0.5, 0, 0, logoY + 32),
+    Creator.New("TextLabel", {
+        Size = UDim2.new(1, -40, 0, 22),
+        Position = UDim2.new(0.5, 0, 0, logoY + 35),
         AnchorPoint = Vector2.new(0.5, 0),
         BackgroundTransparency = 1,
-        Text = Subtitle,
+        Text = self.Subtitle,
         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        TextSize = 13,
-        TextTransparency = 0.4,
-        Parent = self.Container,
-        ThemeTag = {TextColor3 = "SubText"}
+        TextSize = 14,
+        TextColor3 = Color3.fromRGB(160, 165, 180),
+        Parent = self.Container
     })
     
-    -- Key Input Container
-    local inputY = logoY + 70
-    self.InputContainer = Creator.New("Frame", {
-        Size = UDim2.new(1, -48, 0, 46),
+    -- HWID Label (if HWID locked)
+    if self.HWIDLocked and self.HWID then
+        Creator.New("TextLabel", {
+            Size = UDim2.new(1, -40, 0, 18),
+            Position = UDim2.new(0.5, 0, 0, logoY + 60),
+            AnchorPoint = Vector2.new(0.5, 0),
+            BackgroundTransparency = 1,
+            Text = "HWID: " .. self.HWID:sub(1, 20) .. "...",
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+            TextSize = 11,
+            TextColor3 = Color3.fromRGB(100, 105, 120),
+            Parent = self.Container
+        })
+    end
+    
+    -- Key Input
+    local inputY = logoY + (self.HWIDLocked and 95 or 80)
+    self.InputFrame = Creator.New("Frame", {
+        Size = UDim2.new(1, -48, 0, 50),
         Position = UDim2.new(0.5, 0, 0, inputY),
         AnchorPoint = Vector2.new(0.5, 0),
-        BackgroundTransparency = 0.9,
-        Parent = self.Container,
-        ThemeTag = {BackgroundColor3 = "Input"}
+        BackgroundColor3 = Color3.fromRGB(18, 18, 24),
+        BackgroundTransparency = 0.3,
+        Parent = self.Container
     }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)}),
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 12)}),
         Creator.New("UIStroke", {
-            Transparency = 0.6,
             Thickness = 1.5,
-            ThemeTag = {Color = "InputStroke"}
+            Color = Color3.fromRGB(50, 55, 70),
+            Transparency = 0.3
         })
     })
     
     self.KeyInput = Creator.New("TextBox", {
-        Size = UDim2.new(1, -20, 1, 0),
-        Position = UDim2.fromOffset(10, 0),
+        Size = UDim2.new(1, -24, 1, 0),
+        Position = UDim2.fromOffset(12, 0),
         BackgroundTransparency = 1,
         Text = "",
         PlaceholderText = "Enter your key here...",
         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        TextSize = 14,
+        TextSize = 15,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        PlaceholderColor3 = Color3.fromRGB(100, 105, 120),
         TextXAlignment = Enum.TextXAlignment.Center,
         ClearTextOnFocus = false,
-        Parent = self.InputContainer,
-        ThemeTag = {TextColor3 = "Text", PlaceholderColor3 = "PlaceholderColor"}
+        Parent = self.InputFrame
     })
     
     -- Status Label
     self.StatusLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, -40, 0, 18),
-        Position = UDim2.new(0.5, 0, 0, inputY + 52),
+        Size = UDim2.new(1, -40, 0, 20),
+        Position = UDim2.new(0.5, 0, 0, inputY + 58),
         AnchorPoint = Vector2.new(0.5, 0),
         BackgroundTransparency = 1,
         Text = "",
         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-        TextSize = 12,
+        TextSize = 13,
         TextColor3 = Color3.fromRGB(255, 100, 100),
         Parent = self.Container
     })
     
-    -- Submit Button
-    local buttonY = inputY + 80
-    self.SubmitButton = Creator.New("TextButton", {
-        Size = UDim2.new(1, -48, 0, 44),
+    -- Validate Button
+    local buttonY = inputY + 88
+    self.ValidateButton = Creator.New("TextButton", {
+        Size = UDim2.new(1, -48, 0, 48),
         Position = UDim2.new(0.5, 0, 0, buttonY),
         AnchorPoint = Vector2.new(0.5, 0),
-        BackgroundTransparency = 0,
+        BackgroundColor3 = Color3.fromRGB(60, 120, 200),
         Text = "🔓 Validate Key",
         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        TextSize = 15,
-        Parent = self.Container,
-        ThemeTag = {BackgroundColor3 = "Accent", TextColor3 = "Background"}
+        TextSize = 16,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Parent = self.Container
     }, {
-        Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
+        Creator.New("UICorner", {CornerRadius = UDim.new(0, 12)})
     })
     
-    -- Submit button hover
-    local submitMotor, setSubmitHover = Creator.SpringMotor(0, self.SubmitButton, "BackgroundTransparency")
-    Creator.AddSignal(self.SubmitButton.MouseEnter, function()
-        setSubmitHover(0.15)
-    end)
-    Creator.AddSignal(self.SubmitButton.MouseLeave, function()
-        setSubmitHover(0)
+    -- Validate button events
+    self.ValidateButton.MouseButton1Click:Connect(function()
+        self:TryValidate()
     end)
     
-    -- Submit click
-    Creator.AddSignal(self.SubmitButton.MouseButton1Click, function()
-        self:TryValidate(self.KeyInput.Text, SaveKey, KeyName)
-    end)
-    
-    -- Enter key to submit
-    Creator.AddSignal(self.KeyInput.FocusLost, function(enterPressed)
+    self.KeyInput.FocusLost:Connect(function(enterPressed)
         if enterPressed then
-            self:TryValidate(self.KeyInput.Text, SaveKey, KeyName)
+            self:TryValidate()
         end
     end)
     
-    -- Get Key Button (if link provided)
-    if KeyLink then
-        local getKeyY = buttonY + 54
+    -- Get Key Button
+    if self.GetKeyURL then
+        local getKeyY = buttonY + 58
         self.GetKeyButton = Creator.New("TextButton", {
-            Size = UDim2.new(1, -48, 0, 38),
+            Size = UDim2.new(1, -48, 0, 42),
             Position = UDim2.new(0.5, 0, 0, getKeyY),
             AnchorPoint = Vector2.new(0.5, 0),
-            BackgroundTransparency = 0.85,
+            BackgroundColor3 = Color3.fromRGB(35, 38, 48),
             Text = "🔑 Get Key",
             FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
             TextSize = 14,
-            Parent = self.Container,
-            ThemeTag = {BackgroundColor3 = "DialogButton", TextColor3 = "Text"}
+            TextColor3 = Color3.fromRGB(220, 220, 230),
+            Parent = self.Container
         }, {
-            Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)})
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
         })
         
-        Creator.AddSignal(self.GetKeyButton.MouseButton1Click, function()
+        self.GetKeyButton.MouseButton1Click:Connect(function()
             if setclipboard then
-                setclipboard(KeyLink)
-                self.StatusLabel.Text = "Link copied to clipboard!"
+                setclipboard(self.GetKeyURL)
+                self.StatusLabel.Text = "📋 Link copied to clipboard!"
                 self.StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 100)
             end
         end)
+        buttonY = getKeyY
     end
     
-    -- Discord Button (if provided)
-    if Discord then
-        local discordY = KeyLink and (buttonY + 100) or (buttonY + 54)
+    -- Discord Button
+    if self.Discord then
+        local discordY = buttonY + 52
         self.DiscordButton = Creator.New("TextButton", {
-            Size = UDim2.new(0.5, -28, 0, 36),
+            Size = UDim2.fromOffset(160, 38),
             Position = UDim2.new(0.5, 0, 0, discordY),
             AnchorPoint = Vector2.new(0.5, 0),
-            BackgroundTransparency = 0.85,
+            BackgroundColor3 = Color3.fromRGB(88, 101, 242),
             Text = "💬 Discord",
-            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+            FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
             TextSize = 13,
-            Parent = self.Container,
-            ThemeTag = {BackgroundColor3 = "DialogButton", TextColor3 = "Text"}
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            Parent = self.Container
         }, {
-            Creator.New("UICorner", {CornerRadius = UDim.new(0, 8)})
+            Creator.New("UICorner", {CornerRadius = UDim.new(0, 10)})
         })
         
-        Creator.AddSignal(self.DiscordButton.MouseButton1Click, function()
+        self.DiscordButton.MouseButton1Click:Connect(function()
             if setclipboard then
-                setclipboard(Discord)
-                self.StatusLabel.Text = "Discord link copied!"
-                self.StatusLabel.TextColor3 = Color3.fromRGB(100, 150, 255)
+                setclipboard(self.Discord)
+                self.StatusLabel.Text = "💬 Discord link copied!"
+                self.StatusLabel.TextColor3 = Color3.fromRGB(88, 101, 242)
             end
         end)
     end
     
     -- Attempts counter
     self.AttemptsLabel = Creator.New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 16),
-        Position = UDim2.new(0.5, 0, 1, -20),
+        Size = UDim2.new(1, 0, 0, 18),
+        Position = UDim2.new(0.5, 0, 1, -28),
         AnchorPoint = Vector2.new(0.5, 1),
         BackgroundTransparency = 1,
-        Text = string.format("Attempts: 0/%d", MaxAttempts),
+        Text = string.format("Attempts: 0/%d", self.MaxAttempts),
         FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
         TextSize = 11,
-        TextTransparency = 0.5,
-        Parent = self.Container,
-        ThemeTag = {TextColor3 = "SubText"}
+        TextColor3 = Color3.fromRGB(80, 85, 100),
+        Parent = self.Container
     })
     
     -- Open animation
     self.Container.Size = UDim2.fromOffset(0, 0)
-    Creator.Tween(self.Container, {Size = UDim2.fromOffset(380, 420)}, 0.35, Enum.EasingStyle.Back)
-    
-    return self
+    Creator.Tween(self.Container, {Size = UDim2.fromOffset(400, 480)}, 0.4, Enum.EasingStyle.Back)
 end
 
-function KeySystem:ValidateKey(key)
-    if not key or key == "" then
-        return false
-    end
-    
-    -- Custom validation
-    if self.ValidateCallback then
-        return self.ValidateCallback(key)
-    end
-    
-    -- Check against key list
-    for _, validKey in ipairs(self.Keys) do
-        if key == validKey then
-            return true
-        end
-    end
-    
-    return false
-end
+-- ════════════════════════════════════════════════════════════════════════════════
+-- VALIDATION PROCESS
+-- ════════════════════════════════════════════════════════════════════════════════
 
-function KeySystem:TryValidate(key, saveKey, keyName)
+function KeySystem:TryValidate()
+    local key = self.KeyInput.Text
+    
     self.Attempts = self.Attempts + 1
     self.AttemptsLabel.Text = string.format("Attempts: %d/%d", self.Attempts, self.MaxAttempts)
     
-    if self:ValidateKey(key) then
-        -- Success
-        self.Validated = true
-        self.StatusLabel.Text = "✅ Key validated successfully!"
-        self.StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-        
-        if saveKey then
-            self:SaveKeyData(keyName, key)
-        end
-        
-        -- Animate out
-        task.delay(1, function()
-            Creator.Tween(self.Container, {
-                Size = UDim2.fromOffset(0, 0),
-                BackgroundTransparency = 1
-            }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-            
-            Creator.Tween(self.Background, {BackgroundTransparency = 1}, 0.3)
-            
-            task.delay(0.35, function()
-                if self.ScreenGui then
-                    self.ScreenGui:Destroy()
-                end
-                self.OnSuccessCallback()
-            end)
-        end)
-    else
-        -- Failure
-        if self.Attempts >= self.MaxAttempts then
-            self.StatusLabel.Text = "❌ Max attempts reached!"
-            self.SubmitButton.Text = "Access Denied"
-            self.KeyInput.TextEditable = false
-            
-            if self.OnFailureCallback then
-                self.OnFailureCallback(self.Attempts)
-            end
+    -- Show loading state
+    self.ValidateButton.Text = "⏳ Validating..."
+    
+    self:ValidateKeyAsync(key, function(valid, message)
+        if valid then
+            self:OnKeyValid(key, message)
         else
-            self.StatusLabel.Text = "❌ Invalid key! Try again."
-            self.StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-            
-            -- Shake animation
-            local original = self.InputContainer.Position
-            for i = 1, 6 do
-                local offset = (i % 2 == 0) and 8 or -8
-                Creator.Tween(self.InputContainer, {
-                    Position = original + UDim2.fromOffset(offset, 0)
-                }, 0.05)
-                task.wait(0.05)
-            end
-            Creator.Tween(self.InputContainer, {Position = original}, 0.05)
+            self:OnKeyInvalid(message)
         end
+    end)
+end
+
+function KeySystem:OnKeyValid(key, message)
+    self.Validated = true
+    self.StatusLabel.Text = "✅ " .. (message or "Key validated!")
+    self.StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    self.ValidateButton.Text = "✅ Success!"
+    self.ValidateButton.BackgroundColor3 = Color3.fromRGB(50, 180, 80)
+    
+    -- Save key
+    if self.SaveKey then
+        self:SaveKeyData(key)
+    end
+    
+    -- Animate out
+    task.delay(1, function()
+        Creator.Tween(self.Container, {
+            Size = UDim2.fromOffset(0, 0),
+            BackgroundTransparency = 1
+        }, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        
+        Creator.Tween(self.Background, {BackgroundTransparency = 1}, 0.3)
+        
+        task.delay(0.4, function()
+            if self.ScreenGui then
+                self.ScreenGui:Destroy()
+            end
+            self.OnSuccess()
+        end)
+    end)
+end
+
+function KeySystem:OnKeyInvalid(message)
+    if self.Attempts >= self.MaxAttempts then
+        self.StatusLabel.Text = "❌ Max attempts reached!"
+        self.ValidateButton.Text = "🚫 Access Denied"
+        self.ValidateButton.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+        self.KeyInput.TextEditable = false
+        
+        self.OnFailure(self.Attempts)
+    else
+        self.StatusLabel.Text = "❌ " .. (message or "Invalid key")
+        self.StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        self.ValidateButton.Text = "🔓 Validate Key"
+        
+        -- Shake animation
+        self:ShakeInput()
     end
 end
 
-function KeySystem:GetSavedKey(keyName)
-    if not writefile then return nil end
+function KeySystem:ShakeInput()
+    local original = self.InputFrame.Position
+    for i = 1, 8 do
+        local offset = (i % 2 == 0) and 10 or -10
+        offset = offset * (1 - (i / 8))
+        Creator.Tween(self.InputFrame, {
+            Position = original + UDim2.fromOffset(offset, 0)
+        }, 0.04)
+        task.wait(0.04)
+    end
+    Creator.Tween(self.InputFrame, {Position = original}, 0.04)
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- KEY PERSISTENCE
+-- ════════════════════════════════════════════════════════════════════════════════
+
+function KeySystem:GetSavedKey()
+    if not readfile or not isfile then return nil end
     
     local success, content = pcall(function()
-        return readfile("NexusUI/" .. keyName .. ".txt")
+        local path = "NexusUI/" .. self.KeyName .. ".key"
+        if isfile(path) then
+            return readfile(path)
+        end
+        return nil
     end)
     
     return success and content or nil
 end
 
-function KeySystem:SaveKeyData(keyName, key)
+function KeySystem:SaveKeyData(key)
     if not writefile then return end
     
     pcall(function()
         if not isfolder("NexusUI") then
             makefolder("NexusUI")
         end
-        writefile("NexusUI/" .. keyName .. ".txt", key)
+        writefile("NexusUI/" .. self.KeyName .. ".key", key)
     end)
 end
 
+function KeySystem:ClearSavedKey()
+    if not delfile or not isfile then return end
+    
+    local path = "NexusUI/" .. self.KeyName .. ".key"
+    if isfile(path) then
+        delfile(path)
+    end
+end
+
+-- ════════════════════════════════════════════════════════════════════════════════
+-- PUBLIC API
+-- ════════════════════════════════════════════════════════════════════════════════
+
 function KeySystem:OnValidated(callback)
-    self.OnSuccessCallback = callback
+    self.OnSuccess = callback
     
     if self.Validated then
         callback()
     end
+    
+    return self
 end
 
 function KeySystem:OnFailed(callback)
-    self.OnFailureCallback = callback
+    self.OnFailure = callback
+    return self
 end
 
 function KeySystem:IsValidated()
     return self.Validated
+end
+
+function KeySystem:GetHWID()
+    return self.HWID or GetHWID()
 end
 
 return KeySystem
